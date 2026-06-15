@@ -1,0 +1,306 @@
+import React, { useState, useEffect } from 'react';
+import './index.less';
+
+import Toast from '../../components/Toast';
+import FormViagem from '../../components/FormViagem';
+import FormDespesa from '../../components/FormDespesa';
+import CartaoViagem from '../../components/CartaoViagem';
+
+import { useViagens, useDespesas, useCategorias, useToast } from '../../hooks';
+import { MENSAGENS, CONFIRMACOES } from '../../utils';
+
+function DashboardContainer() {
+  const { viagens, criarViagem, atualizarViagem, apagarViagem } = useViagens();
+  const { despesas, criarDespesa, atualizarDespesa, apagarDespesa } = useDespesas();
+  const { categorias } = useCategorias();
+  const { toast, mostrarSucesso, mostrarErro } = useToast();
+  
+  const [mostrarFormViagem, setMostrarFormViagem] = useState(false);
+  const [mostrarFormDespesa, setMostrarFormDespesa] = useState(false);
+  
+  const [filtroTexto, setFiltroTexto] = useState('');
+  const [filtroCategoria, setFiltroCategoria] = useState('todos');
+
+  const [editDespesaUid, setEditDespesaUid] = useState(null);
+  const [formDespesa, setFormDespesa] = useState({
+    descricao: '',
+    valor: '',
+    viagemId: '',
+    categoriaId: ''
+  });
+
+  const [editViagemUid, setEditViagemUid] = useState(null);
+  const [formViagem, setFormViagem] = useState({
+    destino: '',
+    dataInicio: '',
+    dataFim: '',
+    orcamento: ''
+  });
+
+  useEffect(() => {
+    if (viagens.length > 0 && !formDespesa.viagemId && !editDespesaUid) {
+      setFormDespesa(prev => ({ ...prev, viagemId: viagens[0].id }));
+    }
+  }, [viagens]);
+
+  useEffect(() => {
+    if (categorias.length > 0 && !formDespesa.categoriaId) {
+      setFormDespesa(prev => ({ ...prev, categoriaId: categorias[0].id.toString() }));
+    }
+  }, [categorias]);
+
+  const limparFormDespesa = () => {
+    setEditDespesaUid(null);
+    setFormDespesa({
+      descricao: '',
+      valor: '',
+      viagemId: viagens[0]?.id || '',
+      categoriaId: categorias[0]?.id.toString() || ''
+    });
+  };
+
+  const limparFormViagem = () => {
+    setEditViagemUid(null);
+    setFormViagem({
+      destino: '',
+      dataInicio: '',
+      dataFim: '',
+      orcamento: ''
+    });
+  };
+
+  const alternarFormViagem = () => {
+    if (mostrarFormViagem) limparFormViagem();
+    setMostrarFormViagem(!mostrarFormViagem);
+    setMostrarFormDespesa(false);
+  };
+
+  const alternarFormDespesa = () => {
+    if (mostrarFormDespesa) limparFormDespesa();
+    setMostrarFormDespesa(!mostrarFormDespesa);
+    setMostrarFormViagem(false);
+  };
+
+  const iniciarEdicaoDespesa = (d) => {
+    setEditDespesaUid(d.uid);
+    setFormDespesa({
+      descricao: d.descricao,
+      valor: d.valor,
+      viagemId: d.viagem_id,
+      categoriaId: (d.categoria_id || d.categoria_id_selecionada || '').toString()
+    });
+    setMostrarFormDespesa(true);
+    setMostrarFormViagem(false);
+  };
+
+  const iniciarEdicaoViagem = (v) => {
+    setEditViagemUid(v.uid);
+    setFormViagem({
+      destino: v.destino,
+      dataInicio: v.data_de_inicio,
+      dataFim: v.data_de_fim,
+      orcamento: v.orcamento
+    });
+    setMostrarFormViagem(true);
+    setMostrarFormDespesa(false);
+  };
+
+  const handleChangeFormViagem = (field, value) => {
+    setFormViagem(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleChangeFormDespesa = (field, value) => {
+    setFormDespesa(prev => ({ ...prev, [field]: value }));
+  };
+
+  const submeterDespesa = async () => {
+    if (!formDespesa.descricao || !formDespesa.valor) {
+      mostrarErro(MENSAGENS.ERRO_DESPESA_VAZIA);
+      return;
+    }
+
+    const carga = {
+      descricao: formDespesa.descricao,
+      valor: parseFloat(formDespesa.valor),
+      viagem_id: parseInt(formDespesa.viagemId),
+      categoria_id: parseInt(formDespesa.categoriaId)
+    };
+
+    if (editDespesaUid) {
+      carga.uid = editDespesaUid;
+    }
+
+    try {
+      const result = editDespesaUid 
+        ? await atualizarDespesa(carga)
+        : await criarDespesa(carga);
+      
+      if (result.sucesso) {
+        limparFormDespesa();
+        setMostrarFormDespesa(false);
+        mostrarSucesso(editDespesaUid ? MENSAGENS.DESPESA_ATUALIZADA : MENSAGENS.DESPESA_CRIADA);
+      } else {
+        mostrarErro(MENSAGENS.ERRO_SERVIDOR);
+      }
+    } catch (error) {
+      mostrarErro(MENSAGENS.ERRO_COMUNICACAO);
+    }
+  };
+
+  const submeterViagem = async () => {
+    if (!formViagem.destino || !formViagem.dataInicio || !formViagem.dataFim || !formViagem.orcamento) {
+      mostrarErro(MENSAGENS.ERRO_VIAGEM_VAZIA);
+      return;
+    }
+
+    const carga = {
+      destino: formViagem.destino,
+      data_de_inicio: formViagem.dataInicio,
+      data_de_fim: formViagem.dataFim,
+      orcamento: parseFloat(formViagem.orcamento)
+    };
+
+    if (editViagemUid) {
+      carga.uid = editViagemUid;
+    }
+
+    try {
+      const result = editViagemUid 
+        ? await atualizarViagem(carga)
+        : await criarViagem(carga);
+      
+      if (result.sucesso) {
+        limparFormViagem();
+        setMostrarFormViagem(false);
+        mostrarSucesso(editViagemUid ? MENSAGENS.VIAGEM_ATUALIZADA : MENSAGENS.VIAGEM_CRIADA);
+      } else {
+        mostrarErro(MENSAGENS.ERRO_SERVIDOR);
+      }
+    } catch (error) {
+      mostrarErro(MENSAGENS.ERRO_COMUNICACAO);
+    }
+  };
+
+  const handleApagarDespesa = async (uid) => {
+    if (!window.confirm(CONFIRMACOES.APAGAR_DESPESA)) return;
+
+    try {
+      const result = await apagarDespesa(uid);
+      if (result.sucesso) {
+        mostrarSucesso(MENSAGENS.DESPESA_APAGADA);
+      } else {
+        mostrarErro(MENSAGENS.ERRO_SERVIDOR);
+      }
+    } catch (error) {
+      mostrarErro(MENSAGENS.ERRO_COMUNICACAO);
+    }
+  };
+
+  const handleApagarViagem = async (uid) => {
+    if (!window.confirm(CONFIRMACOES.APAGAR_VIAGEM)) return;
+
+    try {
+      const result = await apagarViagem(uid);
+      if (result.sucesso) {
+        mostrarSucesso(MENSAGENS.VIAGEM_APAGADA);
+      } else {
+        mostrarErro(result.erro || MENSAGENS.ERRO_SERVIDOR);
+      }
+    } catch (error) {
+      mostrarErro(MENSAGENS.ERRO_COMUNICACAO);
+    }
+  };
+
+  return (
+    <div className="dashboard-wrapper">
+      <h1 className="dashboard-title">Dashboard ContaViagem ✈️</h1>
+      
+      <Toast toast={toast} />
+
+      <div className="actions-bar">
+        <button 
+          className={`btn-toggle ${mostrarFormViagem ? 'active-green' : ''}`}
+          onClick={alternarFormViagem}
+        >
+          {mostrarFormViagem ? '✖ Fechar Novo Plano' : '🌍 Planear Nova Viagem'}
+        </button>
+        <button 
+          className={`btn-toggle ${mostrarFormDespesa ? 'active' : ''}`}
+          onClick={alternarFormDespesa}
+        >
+          {mostrarFormDespesa ? '✖ Fechar Novo Gasto' : '+ Registar Novo Gasto'}
+        </button>
+      </div>
+      
+      {mostrarFormViagem && (
+        <FormViagem 
+          editando={!!editViagemUid}
+          destino={formViagem.destino}
+          dataInicio={formViagem.dataInicio}
+          dataFim={formViagem.dataFim}
+          orcamento={formViagem.orcamento}
+          onChange={handleChangeFormViagem}
+          onSubmit={submeterViagem}
+        />
+      )}
+
+      {mostrarFormDespesa && (
+        <FormDespesa 
+          editando={!!editDespesaUid}
+          descricao={formDespesa.descricao}
+          valor={formDespesa.valor}
+          viagemId={formDespesa.viagemId}
+          categoriaId={formDespesa.categoriaId}
+          viagens={viagens}
+          categorias={categorias}
+          onChange={handleChangeFormDespesa}
+          onSubmit={submeterDespesa}
+        />
+      )}
+
+      <div style={{ display: 'flex', gap: '15px', marginBottom: '25px', backgroundColor: '#fff', padding: '15px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: '2' }}>
+          <label style={{ fontSize: '12px', color: '#64748b', marginBottom: '5px', fontWeight: 'bold' }}>🔍 Pesquisar nos Gastos</label>
+          <input 
+            type="text" 
+            value={filtroTexto} 
+            onChange={e => setFiltroTexto(e.target.value)} 
+            placeholder="Ex: Café, Comboio, Hotel..." 
+            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }} 
+          />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: '1' }}>
+          <label style={{ fontSize: '12px', color: '#64748b', marginBottom: '5px', fontWeight: 'bold' }}>📁 Categoria</label>
+          <select 
+            value={filtroCategoria} 
+            onChange={e => setFiltroCategoria(e.target.value)} 
+            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#fff' }}
+          >
+            <option value="todos">Todas as Categorias</option>
+            {categorias.map(c => (
+              <option key={c.id} value={c.nome}>{c.nome}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="cards-grid">
+        {viagens.map(viagem => (
+          <CartaoViagem
+            key={viagem.uid}
+            viagem={viagem}
+            despesas={despesas}
+            filtroTexto={filtroTexto}
+            filtroCategoria={filtroCategoria}
+            onEdit={iniciarEdicaoViagem}
+            onDelete={handleApagarViagem}
+            onEditDespesa={iniciarEdicaoDespesa}
+            onDeleteDespesa={handleApagarDespesa}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default DashboardContainer;
