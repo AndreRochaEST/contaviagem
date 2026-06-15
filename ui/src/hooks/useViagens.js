@@ -1,5 +1,17 @@
-import { useState, useEffect } from 'react';
-import { apiClient } from '../services/apiClient';
+﻿import { useState, useEffect } from 'react';
+import _service from '@netuno/service-client';
+
+const callService = (opts) => new Promise((resolve, reject) => {
+  _service({
+    ...opts,
+    success: (response) => {
+      if (response && response.json !== undefined) resolve(response.json);
+      else if (response && response.text !== undefined) resolve(response.text);
+      else resolve(response);
+    },
+    fail: (err) => reject(err)
+  });
+});
 
 export function useViagens() {
   const [viagens, setViagens] = useState([]);
@@ -9,11 +21,11 @@ export function useViagens() {
   const carregarViagens = async () => {
     try {
       setLoading(true);
-      const data = await apiClient.getViagens();
-      setViagens(data);
+      const data = await callService({ url: '/viagens', method: 'GET' });
+      setViagens(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
-      setError(err.message);
+      setError(err && err.error ? (err.error.message || String(err.error)) : (err && err.message ? err.message : String(err)));
       console.error('Erro ao carregar viagens:', err);
     } finally {
       setLoading(false);
@@ -25,42 +37,15 @@ export function useViagens() {
   }, []);
 
   const criarViagem = async (viagem) => {
-    try {
-      const resposta = await apiClient.criarViagem(viagem);
-      if (resposta.sucesso) {
-        await carregarViagens();
-        return resposta;
-      }
-      throw new Error(resposta.erro || 'Erro ao criar viagem');
-    } catch (err) {
-      throw err;
-    }
+    return callService({ url: '/viagens', method: 'POST', data: viagem });
   };
 
   const atualizarViagem = async (viagem) => {
-    try {
-      const resposta = await apiClient.atualizarViagem(viagem);
-      if (resposta.sucesso) {
-        await carregarViagens();
-        return resposta;
-      }
-      throw new Error(resposta.erro || 'Erro ao atualizar viagem');
-    } catch (err) {
-      throw err;
-    }
+    return callService({ url: '/viagens', method: 'PUT', data: viagem });
   };
 
   const apagarViagem = async (uid) => {
-    try {
-      const resposta = await apiClient.apagarViagem(uid);
-      if (resposta.sucesso) {
-        await carregarViagens();
-        return resposta;
-      }
-      throw new Error(resposta.erro || 'Erro ao apagar viagem');
-    } catch (err) {
-      throw err;
-    }
+    return callService({ url: `/viagens?uid=${uid}`, method: 'DELETE' });
   };
 
   return {
