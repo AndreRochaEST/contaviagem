@@ -1,5 +1,6 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatarMoeda, CORES_GRAFICO } from '../../utils';
+import './index.less';
 
 function CartaoViagem({ 
   viagem, 
@@ -66,10 +67,10 @@ function CartaoViagem({
         <div className="budget-resumo">
           <span>Plano: <strong>{formatarMoeda(viagem.orcamento)}</strong></span>
           <span className="budget-gasto">
-            Gasto: <strong style={{ color: corGasto }}>{formatarMoeda(totalGasto)}</strong>
+          Gasto: <strong className="budget-gasto-valor" style={{ '--gasto-color': corGasto }}>{formatarMoeda(totalGasto)}</strong>
           </span>
         </div>
-        <div className="budget-restante" style={{ color: corRestante }}>
+        <div className="budget-restante" style={{ '--restante-color': corRestante }}>
           {orcamentoRestante < 0 
             ? `Excedido em ${formatarMoeda(Math.abs(orcamentoRestante))}` 
             : `Disponível: ${formatarMoeda(orcamentoRestante)}`
@@ -78,7 +79,7 @@ function CartaoViagem({
       </div>
 
       {dadosGrafico.length > 0 && (
-        <div style={{ height: '180px', margin: '20px 0' }}>
+        <div className="chart-wrapper">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -101,16 +102,16 @@ function CartaoViagem({
       )}
 
       {Object.keys(gastosPorCategoria).length > 0 && (
-        <div className="metricas-categoria" style={{ justifyContent: 'center' }}>
+        <div className="metricas-categoria">
           {Object.entries(gastosPorCategoria).map(([cat, valor], index) => (
-            <span key={cat} className="metrica-badge" style={{ borderLeft: `4px solid ${CORES_GRAFICO[index % CORES_GRAFICO.length]}` }}>
+            <span key={cat} className="metrica-badge" style={{ '--badge-color': CORES_GRAFICO[index % CORES_GRAFICO.length] }}>
               {cat}: {formatarMoeda(valor)}
             </span>
           ))}
         </div>
       )}
 
-      <h4 className="gastos-titulo" style={{ marginTop: '20px' }}>Gastos Registados:</h4>
+      <h4 className="gastos-titulo">Gastos Registados:</h4>
       <ul className="gastos-lista">
         {despesasFiltradas.length === 0 ? (
           <li className="gasto-vazio">Nenhum gasto encontrado para os filtros ativos.</li>

@@ -10,7 +10,7 @@ import { useViagens, useDespesas, useCategorias, useToast } from '../../hooks';
 import { MENSAGENS, CONFIRMACOES } from '../../utils';
 
 function DashboardContainer() {
-  const { viagens, criarViagem, atualizarViagem, apagarViagem } = useViagens();
+  const { viagens, carregarViagens, criarViagem, atualizarViagem, apagarViagem } = useViagens();
   const { despesas, criarDespesa, atualizarDespesa, apagarDespesa } = useDespesas();
   const { categorias } = useCategorias();
   const { toast, mostrarSucesso, mostrarErro } = useToast();
@@ -173,6 +173,8 @@ function DashboardContainer() {
         limparFormViagem();
         setMostrarFormViagem(false);
         mostrarSucesso(editViagemUid ? MENSAGENS.VIAGEM_ATUALIZADA : MENSAGENS.VIAGEM_CRIADA);
+        // refresh list
+        if (typeof carregarViagens === 'function') carregarViagens();
       } else {
         mostrarErro(MENSAGENS.ERRO_SERVIDOR);
       }
@@ -203,6 +205,7 @@ function DashboardContainer() {
       const result = await apagarViagem(uid);
       if (result.sucesso) {
         mostrarSucesso(MENSAGENS.VIAGEM_APAGADA);
+        if (typeof carregarViagens === 'function') carregarViagens();
       } else {
         mostrarErro(result.erro || MENSAGENS.ERRO_SERVIDOR);
       }
@@ -258,23 +261,23 @@ function DashboardContainer() {
         />
       )}
 
-      <div style={{ display: 'flex', gap: '15px', marginBottom: '25px', backgroundColor: '#fff', padding: '15px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', flex: '2' }}>
-          <label style={{ fontSize: '12px', color: '#64748b', marginBottom: '5px', fontWeight: 'bold' }}>🔍 Pesquisar nos Gastos</label>
+      <div className="dashboard-filters">
+        <div className="filter-left">
+          <label className="filter-label">🔍 Pesquisar nos Gastos</label>
           <input 
             type="text" 
             value={filtroTexto} 
             onChange={e => setFiltroTexto(e.target.value)} 
             placeholder="Ex: Café, Comboio, Hotel..." 
-            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }} 
+            className="filter-input"
           />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', flex: '1' }}>
-          <label style={{ fontSize: '12px', color: '#64748b', marginBottom: '5px', fontWeight: 'bold' }}>📁 Categoria</label>
+        <div className="filter-right">
+          <label className="filter-label">📁 Categoria</label>
           <select 
             value={filtroCategoria} 
             onChange={e => setFiltroCategoria(e.target.value)} 
-            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#fff' }}
+            className="filter-input"
           >
             <option value="todos">Todas as Categorias</option>
             {categorias.map(c => (

@@ -1,3 +1,5 @@
+import './index.less';
+
 function FormDespesa({ 
   editando, 
   descricao, 
@@ -10,47 +12,41 @@ function FormDespesa({
   onSubmit 
 }) {
   return (
-    <div className="form-container panel-animado" style={{ 
-      backgroundColor: '#fff', 
-      padding: '20px', 
-      borderRadius: '12px', 
-      boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', 
-      marginBottom: '30px' 
-    }}>
-      <h3 style={{ marginTop: 0, color: '#1e293b' }}>
+    <div className="form-container panel-animado form-despesa">
+      <h3 className="form-title">
         {editando ? '✏️ Atualizar Gasto' : '+ Detalhes do Gasto'}
       </h3>
-      <form style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+      <form className="form-grid">
         
-        <div style={{ display: 'flex', flexDirection: 'column', flex: '1', minWidth: '200px' }}>
-          <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '5px' }}>Descrição</label>
+        <div className="form-field form-field--flex">
+          <label className="form-label">Descrição</label>
           <input 
+            className="form-input"
             type="text" 
             value={descricao} 
             onChange={(e) => onChange('descricao', e.target.value)}
             placeholder="Ex: Café no aeroporto" 
-            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
           />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', width: '120px' }}>
-          <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '5px' }}>Valor (€)</label>
+        <div className="form-field form-field--small">
+          <label className="form-label">Valor (€)</label>
           <input 
+            className="form-input"
             type="number" 
             step="0.01" 
             value={valor} 
             onChange={(e) => onChange('valor', e.target.value)}
             placeholder="0.00" 
-            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
           />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', flex: '1', minWidth: '150px' }}>
-          <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '5px' }}>Viagem</label>
+        <div className="form-field form-field--flex">
+          <label className="form-label">Viagem</label>
           <select 
+            className="form-input"
             value={viagemId} 
             onChange={(e) => onChange('viagemId', e.target.value)}
-            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }} 
             disabled={editando}
           >
             {viagens.map(v => (
@@ -59,12 +55,12 @@ function FormDespesa({
           </select>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', flex: '1', minWidth: '150px' }}>
-          <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '5px' }}>Categoria</label>
+        <div className="form-field form-field--flex">
+          <label className="form-label">Categoria</label>
           <select 
+            className="form-input"
             value={categoriaId} 
             onChange={(e) => onChange('categoriaId', e.target.value)}
-            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}
           >
             {categorias.map(c => (
               <option key={c.id} value={c.id}>{c.nome}</option>
@@ -75,16 +71,8 @@ function FormDespesa({
         <button 
           type="button" 
           onClick={onSubmit}
-          style={{ 
-            padding: '11px 20px', 
-            backgroundColor: editando ? '#f59e0b' : '#2563eb', 
-            color: '#fff', 
-            border: 'none', 
-            borderRadius: '6px', 
-            cursor: 'pointer', 
-            fontWeight: 'bold', 
-            height: '42px' 
-          }}
+          className="btn-submit"
+          style={{ '--btn-bg': editando ? '#f59e0b' : '#2563eb' }}
         >
           {editando ? 'Atualizar' : 'Gravar Gasto'}
         </button>
