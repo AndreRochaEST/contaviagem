@@ -10,9 +10,17 @@ import antLocale_esES from "antd/lib/locale/es_ES";
 import antLocale_ptBR from "antd/lib/locale/pt_BR";
 import antLocale_ptPT from "antd/lib/locale/pt_PT";
 
-_service.config({
-  prefix: netuno.config.urlServices
-});
+try {
+  if (typeof netuno !== 'undefined' && netuno && netuno.config && netuno.config.urlServices) {
+    _service.config({ prefix: netuno.config.urlServices });
+  } else {
+    console.warn('netuno.config.urlServices not found, using /services as fallback');
+    _service.config({ prefix: '/services' });
+  }
+} catch (e) {
+  console.warn('Error configuring _service prefix', e);
+  _service.config({ prefix: '/services' });
+}
 
 const dashboardDiv = document.getElementById("app-dashboard");
 
