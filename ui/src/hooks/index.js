@@ -1,4 +1,4 @@
-export { useViagens } from './useViagens';
-export { useDespesas } from './useDespesas';
-export { useCategorias } from './useCategorias';
+export { useViagem } from './useViagem';
+export { useDespesa} from './useDespesa';
+export { useCategoria } from './useCategoria';
 export { useToast } from './useToast';

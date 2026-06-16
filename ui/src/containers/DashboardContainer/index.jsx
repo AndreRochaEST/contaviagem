@@ -6,13 +6,13 @@ import FormViagem from '../../components/FormViagem';
 import FormDespesa from '../../components/FormDespesa';
 import CartaoViagem from '../../components/CartaoViagem';
 
-import { useViagens, useDespesas, useCategorias, useToast } from '../../hooks';
+import { useViagem, useDespesa, useCategoria, useToast } from '../../hooks';
 import { MENSAGENS, CONFIRMACOES } from '../../utils';
 
 function DashboardContainer() {
-  const { viagens, carregarViagens, criarViagem, atualizarViagem, apagarViagem } = useViagens();
-  const { despesas, criarDespesa, atualizarDespesa, apagarDespesa } = useDespesas();
-  const { categorias } = useCategorias();
+  const { viagens, carregarViagens, criarViagem, atualizarViagem, apagarViagem } = useViagem();
+  const { despesas, criarDespesa, atualizarDespesa, apagarDespesa } = useDespesa();
+  const { categorias } = useCategoria();
   const { toast, mostrarSucesso, mostrarErro } = useToast();
   
   const [mostrarFormViagem, setMostrarFormViagem] = useState(false);
@@ -173,7 +173,6 @@ function DashboardContainer() {
         limparFormViagem();
         setMostrarFormViagem(false);
         mostrarSucesso(editViagemUid ? MENSAGENS.VIAGEM_ATUALIZADA : MENSAGENS.VIAGEM_CRIADA);
-        // refresh list
         if (typeof carregarViagens === 'function') carregarViagens();
       } else {
         mostrarErro(MENSAGENS.ERRO_SERVIDOR);
@@ -215,20 +214,20 @@ function DashboardContainer() {
   };
 
   return (
-    <div className="dashboard-wrapper">
-      <h1 className="dashboard-title">Dashboard ContaViagem ✈️</h1>
+    <div className="dashboard">
+      <h1 className="dashboard__title">Dashboard ContaViagem ✈️</h1>
       
       <Toast toast={toast} />
 
-      <div className="actions-bar">
+      <div className="dashboard__actions">
         <button 
-          className={`btn-toggle ${mostrarFormViagem ? 'active-green' : ''}`}
+          className={`btn-toggle ${mostrarFormViagem ? 'btn-toggle--active-green' : ''}`}
           onClick={alternarFormViagem}
         >
           {mostrarFormViagem ? '✖ Fechar Novo Plano' : '🌍 Planear Nova Viagem'}
         </button>
         <button 
-          className={`btn-toggle ${mostrarFormDespesa ? 'active' : ''}`}
+          className={`btn-toggle ${mostrarFormDespesa ? 'btn-toggle--active' : ''}`}
           onClick={alternarFormDespesa}
         >
           {mostrarFormDespesa ? '✖ Fechar Novo Gasto' : '+ Registar Novo Gasto'}
@@ -261,23 +260,23 @@ function DashboardContainer() {
         />
       )}
 
-      <div className="dashboard-filters">
-        <div className="filter-left">
-          <label className="filter-label">🔍 Pesquisar nos Gastos</label>
+      <div className="dashboard__filters">
+        <div className="dashboard__filter-group dashboard__filter-group--large">
+          <label className="dashboard__filter-label">🔍 Pesquisar nos Gastos</label>
           <input 
             type="text" 
             value={filtroTexto} 
             onChange={e => setFiltroTexto(e.target.value)} 
             placeholder="Ex: Café, Comboio, Hotel..." 
-            className="filter-input"
+            className="dashboard__filter-input"
           />
         </div>
-        <div className="filter-right">
-          <label className="filter-label">📁 Categoria</label>
+        <div className="dashboard__filter-group dashboard__filter-group--small">
+          <label className="dashboard__filter-label">📁 Categoria</label>
           <select 
             value={filtroCategoria} 
             onChange={e => setFiltroCategoria(e.target.value)} 
-            className="filter-input"
+            className="dashboard__filter-input"
           >
             <option value="todos">Todas as Categorias</option>
             {categorias.map(c => (
@@ -287,7 +286,7 @@ function DashboardContainer() {
         </div>
       </div>
 
-      <div className="cards-grid">
+      <div className="dashboard__grid">
         {viagens.map(viagem => (
           <CartaoViagem
             key={viagem.uid}

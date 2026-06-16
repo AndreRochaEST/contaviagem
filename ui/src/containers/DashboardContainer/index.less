@@ -1,19 +1,11 @@
-.dashboard-wrapper {
-  padding: 30px;
-  background-color: #f5f7fb;
-  min-height: 100vh;
-  font-family: sans-serif;
+.panel-animado {
+  animation: slideDown 0.3s ease-out;
+  transform-origin: top;
 }
 
-.dashboard-title {
-  color: #1e293b;
-  margin-bottom: 20px;
-}
-
-.actions-bar {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 25px;
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .btn-toggle {
@@ -26,254 +18,83 @@
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   transition: all 0.2s;
+
+  &:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+  }
+
+  &--active {
+    background-color: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+  }
+
+  &--active-green {
+    background-color: #10b981;
+    color: #fff;
+    border-color: #10b981;
+  }
 }
 
-.btn-toggle:hover {
-  background-color: #f8fafc;
-  border-color: #94a3b8;
-}
+.dashboard {
+  padding: 30px;
+  background-color: #f5f7fb;
+  min-height: 100vh;
+  font-family: sans-serif;
 
-.btn-toggle.active {
-  background-color: #2563eb;
-  color: #fff;
-  border-color: #2563eb;
-}
+  &__title {
+    color: #1e293b;
+    margin-bottom: 20px;
+  }
 
-.btn-toggle.active-green {
-  background-color: #10b981;
-  color: #fff;
-  border-color: #10b981;
-}
+  &__actions {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+  }
 
-.panel-animado {
-  animation: slideDown 0.3s ease-out;
-  transform-origin: top;
-}
+  &__filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    background: #fff;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  }
 
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+  &__filter-group {
+    display: flex;
+    flex-direction: column;
 
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-}
+    &--large {
+      flex: 2;
+    }
 
-.card-viagem {
-  background-color: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-  border-top: 6px solid #2563eb;
-}
+    &--small {
+      flex: 1;
+    }
+  }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 10px;
-}
+  &__filter-label {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 5px;
+    font-weight: 700;
+  }
 
-.viagem-destino {
-  margin: 0;
-  color: #1e293b;
-}
+  &__filter-input {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    font-size: 13px;
+    background: #fff;
+  }
 
-.acoes-viagem {
-  display: flex;
-  gap: 4px;
-}
-
-.btn-edit-viagem {
-  background: none;
-  border: none;
-  color: #cbd5e1;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 4px;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.btn-edit-viagem:hover {
-  background-color: #fef3c7;
-  color: #f59e0b;
-}
-
-.btn-delete-viagem {
-  background: none;
-  border: none;
-  color: #cbd5e1;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 4px;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.btn-delete-viagem:hover {
-  background-color: #fee2e2;
-  color: #ef4444;
-}
-
-.viagem-datas {
-  font-size: 14px;
-  color: #64748b;
-  margin: 0 0 15px 0;
-}
-
-.budget-bar {
-  background-color: #f1f5f9;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 15px;
-}
-
-.budget-resumo {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  color: #475569;
-  margin-bottom: 5px;
-}
-
-.budget-gasto {
-  margin-left: auto;
-}
-
-.budget-restante {
-  font-size: 13px;
-  text-align: right;
-}
-
-.gastos-titulo {
-  margin: 0 0 10px 0;
-  color: #475569;
-}
-
-.gastos-lista {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.gasto-vazio {
-  font-size: 13px;
-  color: #94a3b8;
-  font-style: italic;
-}
-
-.gasto-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  padding: 6px 0;
-  border-bottom: 1px dashed #e2e8f0;
-}
-
-.gasto-descricao {
-  color: #1e293b;
-}
-
-.gasto-tag {
-  color: #64748b;
-  background-color: #f1f5f9;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-left: 8px;
-}
-
-.gasto-valores-acoes {
-  display: flex;
-  align-items: center;
-  margin-left: auto;
-}
-
-.gasto-valor {
-  font-weight: bold;
-  color: #334155;
-  margin-right: 10px;
-}
-
-.btn-edit {
-  background: none;
-  border: none;
-  color: #f59e0b;
-  cursor: pointer;
-  font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.btn-edit:hover {
-  background-color: #fef3c7;
-}
-
-.btn-delete {
-  background: none;
-  border: none;
-  color: #ef4444;
-  cursor: pointer;
-  font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.btn-delete:hover {
-  background-color: #fee2e2;
-}
-
-.metricas-categoria {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-}
-
-.metrica-badge {
-  background-color: #e2e8f0;
-  color: #334155;
-  font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-weight: bold;
-}
-
-.toast-container {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  padding: 15px 25px;
-  border-radius: 8px;
-  color: white;
-  font-weight: bold;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  z-index: 1000;
-  animation: slideIn 0.3s ease-out;
-}
-
-.toast-sucesso {
-  background-color: #10b981;
-}
-
-.toast-erro {
-  background-color: #ef4444;
-}
-
-.dashboard-filters{ display:flex; gap:15px; margin-bottom:25px; background:#fff; padding:15px; border-radius:12px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05) }
-.filter-left{ display:flex; flex-direction:column; flex:2 }
-.filter-right{ display:flex; flex-direction:column; flex:1 }
-.filter-label{ font-size:12px; color:#64748b; margin-bottom:5px; font-weight:700 }
-.filter-input{ padding:10px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px; background:#fff }
-.cards-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:18px }
-.btn-toggle{ padding:10px 14px; border-radius:6px; border:none; cursor:pointer }
-.btn-toggle.active-green{ background:#d1fae5 }
-.btn-toggle.active{ background:#e6f0ff }
-
-@keyframes slideIn {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
 }

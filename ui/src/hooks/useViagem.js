@@ -1,19 +1,8 @@
 ﻿import { useState, useEffect } from 'react';
-import _service from '@netuno/service-client';
+import { callService } from '../utils';
 
-const callService = (opts) => new Promise((resolve, reject) => {
-  _service({
-    ...opts,
-    success: (response) => {
-      if (response && response.json !== undefined) resolve(response.json);
-      else if (response && response.text !== undefined) resolve(response.text);
-      else resolve(response);
-    },
-    fail: (err) => reject(err)
-  });
-});
 
-export function useViagens() {
+export function useViagem() {
   const [viagens, setViagens] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,7 +10,7 @@ export function useViagens() {
   const carregarViagens = async () => {
     try {
       setLoading(true);
-      const data = await callService({ url: '/viagens', method: 'GET' });
+      const data = await callService({ url: '/viagem', method: 'GET' });
       setViagens(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
@@ -37,15 +26,15 @@ export function useViagens() {
   }, []);
 
   const criarViagem = async (viagem) => {
-    return callService({ url: '/viagens', method: 'POST', data: viagem });
+    return callService({ url: '/viagem', method: 'POST', data: viagem });
   };
 
   const atualizarViagem = async (viagem) => {
-    return callService({ url: '/viagens', method: 'PUT', data: viagem });
+    return callService({ url: '/viagem', method: 'PUT', data: viagem });
   };
 
   const apagarViagem = async (uid) => {
-    return callService({ url: `/viagens?uid=${uid}`, method: 'DELETE' });
+    return callService({ url: `/viagem?uid=${uid}`, method: 'DELETE' });
   };
 
   return {

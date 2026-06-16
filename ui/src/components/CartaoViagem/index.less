@@ -2,27 +2,122 @@
   background: #fff;
   padding: 18px;
   border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(15,23,42,0.04);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__destino {
+    margin: 0;
+    font-size: 18px;
+    color: #0f172a;
+  }
+
+  &__acoes {
+    button {
+      margin-left: 8px;
+    }
+  }
+
+  &__datas {
+    font-size: 14px;
+    color: #64748b;
+    margin: 10px 0 15px 0;
+  }
+
+  &__budget-bar {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__budget-resumo {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    color: #475569;
+  }
+
+  &__budget-gasto-valor {
+    color: var(--gasto-color);
+  }
+
+  &__budget-restante {
+    margin-top: 8px;
+    color: var(--restante-color);
+    font-weight: 600;
+  }
+
+  &__chart-wrapper {
+    height: 180px;
+    margin: 20px 0;
+  }
+
+  &__metricas {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  &__metrica-badge {
+    padding: 6px 10px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border-left: 4px solid var(--badge-color);
+  }
+
+  &__gastos-titulo {
+    margin-top: 20px;
+  }
+
+  &__gastos-lista {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  &__gasto-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  &__gasto-descricao {
+    font-weight: 500;
+  }
+
+  &__gasto-tag {
+    margin-left: 8px;
+    font-size: 12px;
+    color: #64748b;
+  }
+
+  &__gasto-acoes {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  &__gasto-valor {
+    font-weight: bold;
+    color: #334155;
+    margin-right: 10px;
+  }
+
+  &__btn-edit, 
+  &__btn-delete {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+
+  &__gasto-vazio {
+    color: #64748b;
+    padding: 12px 0;
+  }
 }
-.card-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-.viagem-destino{ margin:0; font-size:18px; color:#0f172a }
-.acoes-viagem button{ margin-left:8px }
-.budget-bar{ display:flex; flex-direction:column }
-.budget-resumo{ display:flex; gap:12px; align-items:center; color:#475569 }
-.budget-gasto-valor{ color: var(--gasto-color); }
-.budget-restante{ margin-top:8px; color: var(--restante-color); font-weight:600 }
-.chart-wrapper{ height:180px; margin:20px 0 }
-.metricas-categoria{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center }
-.metrica-badge{ padding:6px 10px; background:#f8fafc; border-radius:6px; border-left:4px solid var(--badge-color); }
-.gastos-titulo{ margin-top:20px }
-.gastos-lista{ list-style:none; padding:0; margin:0 }
-.gasto-item{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f1f5f9 }
-.gasto-descricao{ font-weight:500 }
-.gasto-tag{ margin-left:8px; font-size:12px; color:#64748b }
-.gasto-valores-acoes{ display:flex; gap:8px; align-items:center }
-.btn-edit, .btn-delete{ background:transparent; border:none; cursor:pointer }
-.gasto-vazio{ color:#64748b; padding:12px 0 }

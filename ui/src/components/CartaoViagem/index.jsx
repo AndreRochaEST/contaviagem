@@ -1,5 +1,12 @@
+import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import { formatarMoeda, CORES_GRAFICO } from '../../utils';
+import { 
+  formatarMoeda, 
+  calcularOrcamento, 
+  filtrarDespesas, 
+  agruparDespesasPorCategoria, 
+  CORES_GRAFICO 
+} from '../../utils';
 import './index.less';
 
 function CartaoViagem({ 
@@ -13,24 +20,15 @@ function CartaoViagem({
   onDeleteDespesa
 }) {
   const todasDespesasDaViagem = despesas.filter(d => d.viagem_id === viagem.id);
-  const totalGasto = todasDespesasDaViagem.reduce((acc, d) => acc + d.valor, 0);
-  const orcamentoRestante = viagem.orcamento - totalGasto;
+  
+  const totalGastoNumerico = todasDespesasDaViagem.reduce((acc, d) => acc + d.valor, 0);
+  const { totalGasto, orcamentoRestante, excedido } = calcularOrcamento(viagem.orcamento, totalGastoNumerico);
+  
+  const despesasFiltradas = filtrarDespesas(todasDespesasDaViagem, filtroTexto, filtroCategoria);
+  const gastosPorCategoria = agruparDespesasPorCategoria(todasDespesasDaViagem);
 
-  const despesasFiltradas = todasDespesasDaViagem.filter(d => {
-    const nomeCat = d.categoria_name || d.categoria_nome || '';
-    const bateTexto = d.descricao.toLowerCase().includes(filtroTexto.toLowerCase());
-    const bateCategoria = filtroCategoria === 'todos' || nomeCat === filtroCategoria;
-    return bateTexto && bateCategoria;
-  });
-
-  const corGasto = totalGasto > viagem.orcamento ? '#dc2626' : '#16a34a';
+  const corGasto = excedido ? '#dc2626' : '#16a34a';
   const corRestante = orcamentoRestante < 0 ? '#dc2626' : '#475569';
-
-  const gastosPorCategoria = todasDespesasDaViagem.reduce((acc, d) => {
-    const cat = d.categoria_name || d.categoria_nome;
-    acc[cat] = (acc[cat] || 0) + d.valor;
-    return acc;
-  }, {});
 
   const dadosGrafico = Object.entries(gastosPorCategoria).map(([name, value]) => ({
     name,
@@ -38,19 +36,19 @@ function CartaoViagem({
   }));
 
   return (
-    <div key={viagem.uid} className="card-viagem">
-      <div className="card-header">
-        <h2 className="viagem-destino">{viagem.destino}</h2>
-        <div className="acoes-viagem">
+    <div className="card-viagem">
+      <div className="card-viagem__header">
+        <h2 className="card-viagem__destino">{viagem.destino}</h2>
+        <div className="card-viagem__acoes">
           <button 
-            className="btn-edit-viagem" 
+            className="card-viagem__btn-edit" 
             onClick={() => onEdit(viagem)}
             title="Editar Viagem"
           >
             ✏️
           </button>
           <button 
-            className="btn-delete-viagem" 
+            className="card-viagem__btn-delete" 
             onClick={() => onDelete(viagem.uid)}
             title="Apagar Viagem"
           >
@@ -59,18 +57,18 @@ function CartaoViagem({
         </div>
       </div>
 
-      <p className="viagem-datas">
+      <p className="card-viagem__datas">
         📅 {viagem.data_de_inicio} até {viagem.data_de_fim}
       </p>
 
-      <div className="budget-bar">
-        <div className="budget-resumo">
+      <div className="card-viagem__budget-bar">
+        <div className="card-viagem__budget-resumo">
           <span>Plano: <strong>{formatarMoeda(viagem.orcamento)}</strong></span>
-          <span className="budget-gasto">
-          Gasto: <strong className="budget-gasto-valor" style={{ '--gasto-color': corGasto }}>{formatarMoeda(totalGasto)}</strong>
+          <span>
+            Gasto: <strong className="card-viagem__budget-gasto-valor" style={{ '--gasto-color': corGasto }}>{formatarMoeda(totalGasto)}</strong>
           </span>
         </div>
-        <div className="budget-restante" style={{ '--restante-color': corRestante }}>
+        <div className="card-viagem__budget-restante" style={{ '--restante-color': corRestante }}>
           {orcamentoRestante < 0 
             ? `Excedido em ${formatarMoeda(Math.abs(orcamentoRestante))}` 
             : `Disponível: ${formatarMoeda(orcamentoRestante)}`
@@ -79,7 +77,7 @@ function CartaoViagem({
       </div>
 
       {dadosGrafico.length > 0 && (
-        <div className="chart-wrapper">
+        <div className="card-viagem__chart-wrapper">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -102,36 +100,36 @@ function CartaoViagem({
       )}
 
       {Object.keys(gastosPorCategoria).length > 0 && (
-        <div className="metricas-categoria">
+        <div className="card-viagem__metricas">
           {Object.entries(gastosPorCategoria).map(([cat, valor], index) => (
-            <span key={cat} className="metrica-badge" style={{ '--badge-color': CORES_GRAFICO[index % CORES_GRAFICO.length] }}>
+            <span key={cat} className="card-viagem__metrica-badge" style={{ '--badge-color': CORES_GRAFICO[index % CORES_GRAFICO.length] }}>
               {cat}: {formatarMoeda(valor)}
             </span>
           ))}
         </div>
       )}
 
-      <h4 className="gastos-titulo">Gastos Registados:</h4>
-      <ul className="gastos-lista">
+      <h4 className="card-viagem__gastos-titulo">Gastos Registados:</h4>
+      <ul className="card-viagem__gastos-lista">
         {despesasFiltradas.length === 0 ? (
-          <li className="gasto-vazio">Nenhum gasto encontrado para os filtros ativos.</li>
+          <li className="card-viagem__gasto-vazio">Nenhum gasto encontrado para os filtros ativos.</li>
         ) : (
           despesasFiltradas.map(d => (
-            <li key={d.uid} className="gasto-item">
-              <span className="gasto-descricao">
-                {d.descricao} 
-                <small className="gasto-tag">{d.categoria_name || d.categoria_nome}</small>
-              </span>
-              <div className="gasto-valores-acoes">
-                <span className="gasto-valor">{formatarMoeda(d.valor)}</span>
+            <li key={d.uid} className="card-viagem__gasto-item">
+              <div>
+                <span className="card-viagem__gasto-descricao">{d.descricao}</span>
+                <small className="card-viagem__gasto-tag">{d.categoria_name || d.categoria_nome}</small>
+              </div>
+              <div className="card-viagem__gasto-acoes">
+                <span className="card-viagem__gasto-valor">{formatarMoeda(d.valor)}</span>
                 <button 
-                  className="btn-edit" 
+                  className="card-viagem__btn-edit" 
                   onClick={() => onEditDespesa(d)}
                 >
                   ✏️
                 </button>
                 <button 
-                  className="btn-delete" 
+                  className="card-viagem__btn-delete" 
                   onClick={() => onDeleteDespesa(d.uid)}
                 >
                   ✖

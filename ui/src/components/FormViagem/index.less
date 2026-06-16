@@ -1,10 +1,64 @@
-.form-viagem{ background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.08); margin-bottom:30px }
-.form-title{ margin:0 0 10px 0; color:#1e293b }
-.form-grid{ display:flex; gap:15px; flex-wrap:wrap; align-items:flex-end }
-.form-field{ display:flex; flex-direction:column }
-.form-field--double{ flex:2; min-width:200px }
-.form-field--small{ flex:1; min-width:120px }
-.form-field-row{ display:flex; gap:15px; flex:2; min-width:250px }
-.form-label{ font-size:13px; color:#64748b; margin-bottom:5px }
-.form-input{ padding:10px; border-radius:6px; border:1px solid #cbd5e1 }
-.btn-submit{ padding:11px 20px; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:700; height:42px; background:var(--btn-bg) }
+.form-viagem {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  margin-bottom: 30px;
+
+  &__title {
+    margin: 0 0 10px 0;
+    color: #1e293b;
+  }
+
+  &__grid {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  &__field-row {
+    display: flex;
+    gap: 15px;
+    flex: 2;
+    min-width: 250px;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+
+    &--double {
+      flex: 2;
+      min-width: 200px;
+    }
+
+    &--small {
+      flex: 1;
+      min-width: 120px;
+    }
+  }
+
+  &__label {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 5px;
+  }
+
+  &__input {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+  }
+
+  &__submit {
+    padding: 11px 20px;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    height: 42px;
+    background: var(--btn-bg);
+  }
+}

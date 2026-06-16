@@ -1,9 +1,57 @@
-.form-despesa{ background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.08); margin-bottom:30px }
-.form-title{ margin:0 0 10px 0; color:#1e293b }
-.form-grid{ display:flex; gap:15px; align-items:flex-end; flex-wrap:wrap }
-.form-field{ display:flex; flex-direction:column }
-.form-field--flex{ flex:1; min-width:150px }
-.form-field--small{ width:120px }
-.form-label{ font-size:13px; color:#64748b; margin-bottom:5px }
-.form-input{ padding:10px; border-radius:6px; border:1px solid #cbd5e1; background:#fff }
-.btn-submit{ padding:11px 20px; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:700; height:42px; background:var(--btn-bg) }
+.form-despesa {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  margin-bottom: 30px;
+
+  &__title {
+    margin: 0 0 10px 0;
+    color: #1e293b;
+  }
+
+  &__grid {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+
+    &--flex {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    &--small {
+      width: 120px;
+    }
+  }
+
+  &__label {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 5px;
+  }
+
+  &__input {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+  }
+
+  &__submit {
+    padding: 11px 20px;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    height: 42px;
+    background: var(--btn-bg);
+  }
+}

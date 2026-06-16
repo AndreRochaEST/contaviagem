@@ -13,15 +13,15 @@ function FormDespesa({
 }) {
   return (
     <div className="form-container panel-animado form-despesa">
-      <h3 className="form-title">
+      <h3 className="form-despesa__title">
         {editando ? '✏️ Atualizar Gasto' : '+ Detalhes do Gasto'}
       </h3>
-      <form className="form-grid">
+      <form className="form-despesa__grid">
         
-        <div className="form-field form-field--flex">
-          <label className="form-label">Descrição</label>
+        <div className="form-despesa__field form-despesa__field--flex">
+          <label className="form-despesa__label">Descrição</label>
           <input 
-            className="form-input"
+            className="form-despesa__input"
             type="text" 
             value={descricao} 
             onChange={(e) => onChange('descricao', e.target.value)}
@@ -29,10 +29,10 @@ function FormDespesa({
           />
         </div>
 
-        <div className="form-field form-field--small">
-          <label className="form-label">Valor (€)</label>
+        <div className="form-despesa__field form-despesa__field--small">
+          <label className="form-despesa__label">Valor (€)</label>
           <input 
-            className="form-input"
+            className="form-despesa__input"
             type="number" 
             step="0.01" 
             value={valor} 
@@ -41,10 +41,10 @@ function FormDespesa({
           />
         </div>
 
-        <div className="form-field form-field--flex">
-          <label className="form-label">Viagem</label>
+        <div className="form-despesa__field form-despesa__field--flex">
+          <label className="form-despesa__label">Viagem</label>
           <select 
-            className="form-input"
+            className="form-despesa__input"
             value={viagemId} 
             onChange={(e) => onChange('viagemId', e.target.value)}
             disabled={editando}
@@ -55,10 +55,10 @@ function FormDespesa({
           </select>
         </div>
 
-        <div className="form-field form-field--flex">
-          <label className="form-label">Categoria</label>
+        <div className="form-despesa__field form-despesa__field--flex">
+          <label className="form-despesa__label">Categoria</label>
           <select 
-            className="form-input"
+            className="form-despesa__input"
             value={categoriaId} 
             onChange={(e) => onChange('categoriaId', e.target.value)}
           >
@@ -71,7 +71,7 @@ function FormDespesa({
         <button 
           type="button" 
           onClick={onSubmit}
-          className="btn-submit"
+          className="form-despesa__submit"
           style={{ '--btn-bg': editando ? '#f59e0b' : '#2563eb' }}
         >
           {editando ? 'Atualizar' : 'Gravar Gasto'}

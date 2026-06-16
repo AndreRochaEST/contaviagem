@@ -1,19 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
-import _service from '@netuno/service-client';
+import { callService } from '../utils';
 
-const callService = (opts) => new Promise((resolve, reject) => {
-  _service({
-    ...opts,
-    success: (response) => {
-      if (response && response.json !== undefined) resolve(response.json);
-      else if (response && response.text !== undefined) resolve(response.text);
-      else resolve(response);
-    },
-    fail: (err) => reject(err)
-  });
-});
-
-export function useCategorias() {
+export function useCategoria() {
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,7 +9,7 @@ export function useCategorias() {
   const carregarCategorias = async () => {
     try {
       setLoading(true);
-      const data = await callService({ url: '/categorias', method: 'GET' });
+      const data = await callService({ url: '/categoria', method: 'GET' });
       setCategorias(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {

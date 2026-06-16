@@ -1,19 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
-import _service from '@netuno/service-client';
+import { callService } from '../utils';
 
-const callService = (opts) => new Promise((resolve, reject) => {
-  _service({
-    ...opts,
-    success: (response) => {
-      if (response && response.json !== undefined) resolve(response.json);
-      else if (response && response.text !== undefined) resolve(response.text);
-      else resolve(response);
-    },
-    fail: (err) => reject(err)
-  });
-});
-
-export function useDespesas() {
+export function useDespesa() {
   const [despesas, setDespesas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,7 +9,7 @@ export function useDespesas() {
   const carregarDespesas = async () => {
     try {
       setLoading(true);
-      const data = await callService({ url: '/despesas', method: 'GET' });
+      const data = await callService({ url: '/despesa', method: 'GET' });
       setDespesas(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
@@ -37,15 +25,15 @@ export function useDespesas() {
   }, []);
 
   const criarDespesa = async (despesa) => {
-    return callService({ url: '/despesas', method: 'POST', data: despesa });
+    return callService({ url: '/despesa', method: 'POST', data: despesa });
   };
 
   const atualizarDespesa = async (despesa) => {
-    return callService({ url: '/despesas', method: 'PUT', data: despesa });
+    return callService({ url: '/despesa', method: 'PUT', data: despesa });
   };
 
   const apagarDespesa = async (uid) => {
-    return callService({ url: `/despesas?uid=${uid}`, method: 'DELETE' });
+    return callService({ url: `/despesa?uid=${uid}`, method: 'DELETE' });
   };
 
   return {
