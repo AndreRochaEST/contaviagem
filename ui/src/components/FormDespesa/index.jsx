@@ -6,11 +6,16 @@ function FormDespesa({
   valor, 
   viagemId,
   categoriaId,
+  membroId,
   viagens,
   categorias,
+  membros,
   onChange,
   onSubmit 
 }) {
+  
+  const membrosDaViagem = membros ? membros.filter(m => m.viagem_id == viagemId) : [];
+
   return (
     <div className="form-container panel-animado form-despesa">
       <h3 className="form-despesa__title">
@@ -68,6 +73,23 @@ function FormDespesa({
           </select>
         </div>
 
+        <div className="form-despesa__field form-despesa__field--flex">
+          <label className="form-despesa__label">Quem pagou?</label>
+          <select 
+            className="form-despesa__input"
+            value={membroId || ''} 
+            onChange={(e) => onChange('membroId', e.target.value)}
+          >
+            <option value="">-- Selecione quem pagou --</option>
+            {membrosDaViagem.length > 0 ? (
+              membrosDaViagem.map(m => (
+                <option key={m.id} value={m.id}>{m.nome}</option>
+              ))
+            ) : (
+              <option value="" disabled>Sem membros nesta viagem</option>
+            )}
+          </select>
+        </div>
         <button 
           type="button" 
           onClick={onSubmit}

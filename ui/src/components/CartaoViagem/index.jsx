@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { 
   formatarMoeda, 
@@ -11,15 +11,21 @@ import './index.less';
 
 function CartaoViagem({ 
   viagem, 
-  despesas, 
+  despesas,
+  membros = [],
   filtroTexto, 
   filtroCategoria,
   onEdit,
   onDelete,
   onEditDespesa,
-  onDeleteDespesa
+  onDeleteDespesa,
+  onAddMembro,
+  onDeleteMembro
 }) {
+  const [novoMembroNome, setNovoMembroNome] = useState('');
+
   const todasDespesasDaViagem = despesas.filter(d => d.viagem_id === viagem.id);
+  const membrosDaViagem = membros.filter(m => m.viagem_id === viagem.id);
   
   const totalGastoNumerico = todasDespesasDaViagem.reduce((acc, d) => acc + d.valor, 0);
   const { totalGasto, orcamentoRestante, excedido } = calcularOrcamento(viagem.orcamento, totalGastoNumerico);
@@ -34,6 +40,12 @@ function CartaoViagem({
     name,
     value
   }));
+
+  const handleAddMembro = () => {
+    if (!novoMembroNome.trim()) return;
+    onAddMembro(viagem.id, novoMembroNome.trim());
+    setNovoMembroNome('');
+  };
 
   return (
     <div className="card-viagem">
@@ -73,6 +85,30 @@ function CartaoViagem({
             ? `Excedido em ${formatarMoeda(Math.abs(orcamentoRestante))}` 
             : `Disponível: ${formatarMoeda(orcamentoRestante)}`
           }
+        </div>
+      </div>
+
+      <div className="card-viagem__membros">
+        <h4 className="card-viagem__membros-titulo">👥 Participantes</h4>
+        <div className="card-viagem__membros-lista">
+          {membrosDaViagem.length === 0 && <span className="card-viagem__membro-vazio">Nenhum participante adicionado.</span>}
+          {membrosDaViagem.map(m => (
+            <span key={m.uid} className="card-viagem__membro-badge">
+              {m.nome}
+              <button className="card-viagem__membro-remove" onClick={() => onDeleteMembro(m.uid)} title="Remover">✖</button>
+            </span>
+          ))}
+        </div>
+        <div className="card-viagem__membros-add">
+          <input 
+            type="text" 
+            className="card-viagem__membros-input"
+            placeholder="Novo participante..." 
+            value={novoMembroNome}
+            onChange={e => setNovoMembroNome(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleAddMembro()}
+          />
+          <button className="card-viagem__membros-btn" onClick={handleAddMembro}>+</button>
         </div>
       </div>
 
@@ -119,6 +155,11 @@ function CartaoViagem({
               <div>
                 <span className="card-viagem__gasto-descricao">{d.descricao}</span>
                 <small className="card-viagem__gasto-tag">{d.categoria_name || d.categoria_nome}</small>
+                {d.pago_por && (
+                  <small className="card-viagem__gasto-pagador" style={{ display: 'block', color: '#64748b', fontSize: '0.75rem', marginTop: '2px' }}>
+                    Pago por: <strong>{membros.find(m => m.id === d.pago_por)?.nome || 'Desconhecido'}</strong>
+                  </small>
+                )}
               </div>
               <div className="card-viagem__gasto-acoes">
                 <span className="card-viagem__gasto-valor">{formatarMoeda(d.valor)}</span>

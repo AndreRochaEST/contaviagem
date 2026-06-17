@@ -6,15 +6,16 @@ import FormViagem from '../../components/FormViagem';
 import FormDespesa from '../../components/FormDespesa';
 import CartaoViagem from '../../components/CartaoViagem';
 
-import { useViagem, useDespesa, useCategoria, useToast } from '../../hooks';
+import { useViagem, useDespesa, useCategoria, useToast, useMembro } from '../../hooks';
 import { MENSAGENS, CONFIRMACOES } from '../../utils';
 
 function DashboardContainer() {
   const { viagens, carregarViagens, criarViagem, atualizarViagem, apagarViagem } = useViagem();
-  const { despesas, criarDespesa, atualizarDespesa, apagarDespesa } = useDespesa();
+  const { despesas, criarDespesa, atualizarDespesa, apagarDespesa, carregarDespesas } = useDespesa();
   const { categorias } = useCategoria();
   const { toast, mostrarSucesso, mostrarErro } = useToast();
-  
+  const { membros, criarMembro, apagarMembro, carregarMembros } = useMembro();
+
   const [mostrarFormViagem, setMostrarFormViagem] = useState(false);
   const [mostrarFormDespesa, setMostrarFormDespesa] = useState(false);
   
@@ -26,7 +27,8 @@ function DashboardContainer() {
     descricao: '',
     valor: '',
     viagemId: '',
-    categoriaId: ''
+    categoriaId: '',
+    membroId: ''
   });
 
   const [editViagemUid, setEditViagemUid] = useState(null);
@@ -55,7 +57,8 @@ function DashboardContainer() {
       descricao: '',
       valor: '',
       viagemId: viagens[0]?.id || '',
-      categoriaId: categorias[0]?.id.toString() || ''
+      categoriaId: categorias[0]?.id.toString() || '',
+      membroId: ''
     });
   };
 
@@ -87,7 +90,8 @@ function DashboardContainer() {
       descricao: d.descricao,
       valor: d.valor,
       viagemId: d.viagem_id,
-      categoriaId: (d.categoria_id || d.categoria_id_selecionada || '').toString()
+      categoriaId: (d.categoria_id || d.categoria_id_selecionada || '').toString(),
+      membroId: (d.pago_por || '').toString()
     });
     setMostrarFormDespesa(true);
     setMostrarFormViagem(false);
@@ -126,6 +130,10 @@ function DashboardContainer() {
       categoria_id: parseInt(formDespesa.categoriaId)
     };
 
+    if (formDespesa.membroId) {
+      carga.pago_por = parseInt(formDespesa.membroId);
+    }
+
     if (editDespesaUid) {
       carga.uid = editDespesaUid;
     }
@@ -139,6 +147,7 @@ function DashboardContainer() {
         limparFormDespesa();
         setMostrarFormDespesa(false);
         mostrarSucesso(editDespesaUid ? MENSAGENS.DESPESA_ATUALIZADA : MENSAGENS.DESPESA_CRIADA);
+        if (typeof carregarDespesas === 'function') carregarDespesas();
       } else {
         mostrarErro(MENSAGENS.ERRO_SERVIDOR);
       }
@@ -189,6 +198,7 @@ function DashboardContainer() {
       const result = await apagarDespesa(uid);
       if (result.sucesso) {
         mostrarSucesso(MENSAGENS.DESPESA_APAGADA);
+        if (typeof carregarDespesas === 'function') carregarDespesas();
       } else {
         mostrarErro(MENSAGENS.ERRO_SERVIDOR);
       }
@@ -210,6 +220,27 @@ function DashboardContainer() {
       }
     } catch (error) {
       mostrarErro(MENSAGENS.ERRO_COMUNICACAO);
+    }
+  };
+
+  const handleAddMembro = async (viagemId, nome) => {
+    const result = await criarMembro({ viagem_id: viagemId, nome });
+    if (result.sucesso) {
+      if (typeof carregarMembros === 'function') carregarMembros();
+      mostrarSucesso('Participante adicionado!');
+    } else {
+      mostrarErro(MENSAGENS.ERRO_SERVIDOR);
+    }
+  };
+
+  const handleDeleteMembro = async (uid) => {
+    if (!window.confirm('Queres mesmo remover este participante?')) return;
+    const result = await apagarMembro(uid);
+    if (result.sucesso) {
+      if (typeof carregarMembros === 'function') carregarMembros();
+      mostrarSucesso('Participante removido!');
+    } else {
+      mostrarErro(result.erro || MENSAGENS.ERRO_SERVIDOR);
     }
   };
 
@@ -253,8 +284,10 @@ function DashboardContainer() {
           valor={formDespesa.valor}
           viagemId={formDespesa.viagemId}
           categoriaId={formDespesa.categoriaId}
+          membroId={formDespesa.membroId}
           viagens={viagens}
           categorias={categorias}
+          membros={membros}
           onChange={handleChangeFormDespesa}
           onSubmit={submeterDespesa}
         />
@@ -292,12 +325,15 @@ function DashboardContainer() {
             key={viagem.uid}
             viagem={viagem}
             despesas={despesas}
+            membros={membros}
             filtroTexto={filtroTexto}
             filtroCategoria={filtroCategoria}
             onEdit={iniciarEdicaoViagem}
             onDelete={handleApagarViagem}
             onEditDespesa={iniciarEdicaoDespesa}
             onDeleteDespesa={handleApagarDespesa}
+            onAddMembro={handleAddMembro}
+            onDeleteMembro={handleDeleteMembro}
           />
         ))}
       </div>
