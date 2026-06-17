@@ -23,6 +23,7 @@ function CartaoViagem({
   onDeleteMembro
 }) {
   const [novoMembroNome, setNovoMembroNome] = useState('');
+  const [mostrarMembros, setMostrarMembros] = useState(false);
 
   const todasDespesasDaViagem = despesas.filter(d => d.viagem_id === viagem.id);
   const membrosDaViagem = membros.filter(m => m.viagem_id === viagem.id);
@@ -88,28 +89,39 @@ function CartaoViagem({
         </div>
       </div>
 
-      <div className="card-viagem__membros">
-        <h4 className="card-viagem__membros-titulo">👥 Participantes</h4>
-        <div className="card-viagem__membros-lista">
-          {membrosDaViagem.length === 0 && <span className="card-viagem__membro-vazio">Nenhum participante adicionado.</span>}
-          {membrosDaViagem.map(m => (
-            <span key={m.uid} className="card-viagem__membro-badge">
-              {m.nome}
-              <button className="card-viagem__membro-remove" onClick={() => onDeleteMembro(m.uid)} title="Remover">✖</button>
-            </span>
-          ))}
-        </div>
-        <div className="card-viagem__membros-add">
-          <input 
-            type="text" 
-            className="card-viagem__membros-input"
-            placeholder="Novo participante..." 
-            value={novoMembroNome}
-            onChange={e => setNovoMembroNome(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleAddMembro()}
-          />
-          <button className="card-viagem__membros-btn" onClick={handleAddMembro}>+</button>
-        </div>
+      <div className="card-viagem__membros-container">
+        <button 
+          className="card-viagem__membros-toggle"
+          onClick={() => setMostrarMembros(!mostrarMembros)}
+        >
+          <span>👥 Participantes ({membrosDaViagem.length})</span>
+          <span>{mostrarMembros ? '▲' : '▼'}</span>
+        </button>
+
+        {mostrarMembros && (
+          <div className="card-viagem__membros-content">
+            <div className="card-viagem__membros-lista">
+              {membrosDaViagem.length === 0 && <span className="card-viagem__membro-vazio">Nenhum participante adicionado.</span>}
+              {membrosDaViagem.map(m => (
+                <span key={m.uid} className="card-viagem__membro-badge">
+                  {m.nome}
+                  <button className="card-viagem__membro-remove" onClick={() => onDeleteMembro(m.uid)} title="Remover">✖</button>
+                </span>
+              ))}
+            </div>
+            <div className="card-viagem__membros-add">
+              <input 
+                type="text" 
+                className="card-viagem__membros-input"
+                placeholder="Adicionar nome..." 
+                value={novoMembroNome}
+                onChange={e => setNovoMembroNome(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleAddMembro()}
+              />
+              <button className="card-viagem__membros-btn" onClick={handleAddMembro}>+</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {dadosGrafico.length > 0 && (
