@@ -5,6 +5,7 @@ const novoId = _db.insert("despesa", _val.map()
     .set("valor", _req.getFloat("valor"))
     .set("viagem_id", _req.getInt("viagem_id"))
     .set("categoria_id", _req.getInt("categoria_id"))
+    .set("pago_por_id", _req.getInt("pago_por_id"))
 );
 
 if (novoId) {

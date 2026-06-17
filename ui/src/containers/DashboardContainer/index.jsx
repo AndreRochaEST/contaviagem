@@ -91,7 +91,7 @@ function DashboardContainer() {
       valor: d.valor,
       viagemId: d.viagem_id,
       categoriaId: (d.categoria_id || d.categoria_id_selecionada || '').toString(),
-      membroId: (d.pago_por || '').toString()
+      membroId: (d.pago_por_id || '').toString()
     });
     setMostrarFormDespesa(true);
     setMostrarFormViagem(false);
@@ -123,7 +123,7 @@ function DashboardContainer() {
       return;
     }
 
-    const carga = {
+    const dados = {
       descricao: formDespesa.descricao,
       valor: parseFloat(formDespesa.valor),
       viagem_id: parseInt(formDespesa.viagemId),
@@ -131,17 +131,17 @@ function DashboardContainer() {
     };
 
     if (formDespesa.membroId) {
-      carga.pago_por = parseInt(formDespesa.membroId);
+      dados.pago_por_id = parseInt(formDespesa.membroId);
     }
 
     if (editDespesaUid) {
-      carga.uid = editDespesaUid;
+      dados.uid = editDespesaUid;
     }
 
     try {
       const result = editDespesaUid 
-        ? await atualizarDespesa(carga)
-        : await criarDespesa(carga);
+        ? await atualizarDespesa(dados)
+        : await criarDespesa(dados);
       
       if (result.sucesso) {
         limparFormDespesa();
@@ -162,7 +162,7 @@ function DashboardContainer() {
       return;
     }
 
-    const carga = {
+    const dados = {
       destino: formViagem.destino,
       data_de_inicio: formViagem.dataInicio,
       data_de_fim: formViagem.dataFim,
@@ -170,13 +170,13 @@ function DashboardContainer() {
     };
 
     if (editViagemUid) {
-      carga.uid = editViagemUid;
+      dados.uid = editViagemUid;
     }
 
     try {
       const result = editViagemUid 
-        ? await atualizarViagem(carga)
-        : await criarViagem(carga);
+        ? await atualizarViagem(dados)
+        : await criarViagem(dados);
       
       if (result.sucesso) {
         limparFormViagem();

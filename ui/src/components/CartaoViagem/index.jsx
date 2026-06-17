@@ -102,12 +102,24 @@ function CartaoViagem({
           <div className="card-viagem__membros-content">
             <div className="card-viagem__membros-lista">
               {membrosDaViagem.length === 0 && <span className="card-viagem__membro-vazio">Nenhum participante adicionado.</span>}
-              {membrosDaViagem.map(m => (
-                <span key={m.uid} className="card-viagem__membro-badge">
-                  {m.nome}
-                  <button className="card-viagem__membro-remove" onClick={() => onDeleteMembro(m.uid)} title="Remover">✖</button>
-                </span>
-              ))}
+              {membrosDaViagem.map(m => {
+                // CORREÇÃO: Agora procuramos exatamente pelo pago_por_id como texto
+                const totalPago = todasDespesasDaViagem
+                  .filter(d => String(d.pago_por_id) === String(m.id))
+                  .reduce((acc, curr) => acc + curr.valor, 0);
+
+                return (
+                  <span key={m.uid} className="card-viagem__membro-badge">
+                    {m.nome}
+                    {totalPago > 0 && (
+                      <span style={{ color: '#16a34a', fontWeight: 'bold', marginLeft: '4px' }}>
+                        ({formatarMoeda(totalPago)})
+                      </span>
+                    )}
+                    <button className="card-viagem__membro-remove" onClick={() => onDeleteMembro(m.uid)} title="Remover">✖</button>
+                  </span>
+                );
+              })}
             </div>
             <div className="card-viagem__membros-add">
               <input 
@@ -167,9 +179,11 @@ function CartaoViagem({
               <div>
                 <span className="card-viagem__gasto-descricao">{d.descricao}</span>
                 <small className="card-viagem__gasto-tag">{d.categoria_name || d.categoria_nome}</small>
-                {d.pago_por && (
+                
+                {/* CORREÇÃO: Usar o pago_por_id para mostrar o nome debaixo da despesa */}
+                {d.pago_por_id && (
                   <small className="card-viagem__gasto-pagador" style={{ display: 'block', color: '#64748b', fontSize: '0.75rem', marginTop: '2px' }}>
-                    Pago por: <strong>{membros.find(m => m.id === d.pago_por)?.nome || 'Desconhecido'}</strong>
+                    Pago por: <strong>{membros.find(m => String(m.id) === String(d.pago_por_id))?.nome || 'Desconhecido'}</strong>
                   </small>
                 )}
               </div>

@@ -7,6 +7,7 @@ const atualizado = _db.update("despesa", uid, _val.map()
     .set("valor", _req.getFloat("valor"))
     .set("viagem_id", _req.getInt("viagem_id"))
     .set("categoria_id", _req.getInt("categoria_id"))
+    .set("pago_por_id", _req.getInt("pago_por_id"))
 );
 
 if (atualizado) {
