@@ -5,6 +5,8 @@ import Toast from '../../components/Toast';
 import FormViagem from '../../components/FormViagem';
 import FormDespesa from '../../components/FormDespesa';
 import CartaoViagem from '../../components/CartaoViagem';
+import FiltrosDashboard from '../../components/FiltrosDashboard';
+import AcoesDashboard from '../../components/AcoesDashboard';
 
 import { useViagem, useDespesa, useCategoria, useToast, useMembro } from '../../hooks';
 import { MENSAGENS, CONFIRMACOES } from '../../utils';
@@ -24,7 +26,6 @@ function DashboardContainer() {
 
   const [editDespesaUid, setEditDespesaUid] = useState(null);
   
-  // NOVO ESTADO COM OS DADOS DE CÂMBIO
   const [formDespesa, setFormDespesa] = useState({
     descricao: '',
     valor: '',
@@ -126,11 +127,9 @@ function DashboardContainer() {
     setMostrarFormDespesa(false);
   };
 
-  // MAGIA DA MULTIPLICAÇÃO AQUI
   const handleChangeFormDespesa = (field, value) => {
     setFormDespesa(prev => {
       const newState = { ...prev, [field]: value };
-      
       if (newState.usarCambio && (field === 'valorEstrangeiro' || field === 'taxaCambio' || field === 'usarCambio')) {
         const vEst = parseFloat(newState.valorEstrangeiro) || 0;
         const taxa = parseFloat(newState.taxaCambio) || 0;
@@ -140,7 +139,6 @@ function DashboardContainer() {
           newState.valor = '';
         }
       }
-      
       return newState;
     });
   };
@@ -155,7 +153,6 @@ function DashboardContainer() {
       return;
     }
 
-    // Se usamos câmbio, guardamos a prova na descrição!
     let descricaoFinal = formDespesa.descricao;
     if (formDespesa.usarCambio && formDespesa.valorEstrangeiro && formDespesa.taxaCambio) {
       descricaoFinal += ` (${formDespesa.valorEstrangeiro} ${formDespesa.moeda} à taxa de ${formDespesa.taxaCambio})`;
@@ -315,20 +312,12 @@ function DashboardContainer() {
       
       <Toast toast={toast} />
 
-      <div className="dashboard__actions">
-        <button 
-          className={`btn-toggle ${mostrarFormViagem ? 'btn-toggle--active-green' : ''}`}
-          onClick={alternarFormViagem}
-        >
-          {mostrarFormViagem ? '✖ Fechar Novo Plano' : '🌍 Planear Nova Viagem'}
-        </button>
-        <button 
-          className={`btn-toggle ${mostrarFormDespesa ? 'btn-toggle--active' : ''}`}
-          onClick={alternarFormDespesa}
-        >
-          {mostrarFormDespesa ? '✖ Fechar Novo Gasto' : '+ Registar Novo Gasto'}
-        </button>
-      </div>
+      <AcoesDashboard 
+        mostrarFormViagem={mostrarFormViagem}
+        alternarFormViagem={alternarFormViagem}
+        mostrarFormDespesa={mostrarFormDespesa}
+        alternarFormDespesa={alternarFormDespesa}
+      />
       
       {mostrarFormViagem && (
         <FormViagem 
@@ -363,31 +352,13 @@ function DashboardContainer() {
         />
       )}
 
-      <div className="dashboard__filters">
-        <div className="dashboard__filter-group dashboard__filter-group--large">
-          <label className="dashboard__filter-label">🔍 Pesquisar nos Gastos</label>
-          <input 
-            type="text" 
-            value={filtroTexto} 
-            onChange={e => setFiltroTexto(e.target.value)} 
-            placeholder="Ex: Café, Comboio, Hotel..." 
-            className="dashboard__filter-input"
-          />
-        </div>
-        <div className="dashboard__filter-group dashboard__filter-group--small">
-          <label className="dashboard__filter-label">📁 Categoria</label>
-          <select 
-            value={filtroCategoria} 
-            onChange={e => setFiltroCategoria(e.target.value)} 
-            className="dashboard__filter-input"
-          >
-            <option value="todos">Todas as Categorias</option>
-            {categorias.map(c => (
-              <option key={c.id} value={c.nome}>{c.nome}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <FiltrosDashboard 
+        filtroTexto={filtroTexto}
+        onFiltroTextoChange={setFiltroTexto}
+        filtroCategoria={filtroCategoria}
+        onFiltroCategoriaChange={setFiltroCategoria}
+        categorias={categorias}
+      />
 
       <div className="dashboard__grid">
         {viagens.map(viagem => (
