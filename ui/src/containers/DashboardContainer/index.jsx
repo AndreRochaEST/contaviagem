@@ -28,7 +28,8 @@ function DashboardContainer() {
     valor: '',
     viagemId: '',
     categoriaId: '',
-    membroId: ''
+    membroId: '',
+    envolvidosIds: []
   });
 
   const [editViagemUid, setEditViagemUid] = useState(null);
@@ -58,7 +59,8 @@ function DashboardContainer() {
       valor: '',
       viagemId: viagens[0]?.id || '',
       categoriaId: categorias[0]?.id.toString() || '',
-      membroId: ''
+      membroId: '',
+      envolvidosIds: []
     });
   };
 
@@ -91,7 +93,8 @@ function DashboardContainer() {
       valor: d.valor,
       viagemId: d.viagem_id,
       categoriaId: (d.categoria_id || d.categoria_id_selecionada || '').toString(),
-      membroId: (d.pago_por_id || '').toString()
+      membroId: (d.pago_por_id || '').toString(),
+      envolvidosIds: d.envolvidos_ids ? d.envolvidos_ids.split(',').filter(x => x) : []
     });
     setMostrarFormDespesa(true);
     setMostrarFormViagem(false);
@@ -133,6 +136,8 @@ function DashboardContainer() {
     if (formDespesa.membroId) {
       dados.pago_por_id = parseInt(formDespesa.membroId);
     }
+    
+    dados.envolvidos_ids = formDespesa.envolvidosIds.join(',');
 
     if (editDespesaUid) {
       dados.uid = editDespesaUid;
@@ -285,6 +290,7 @@ function DashboardContainer() {
           viagemId={formDespesa.viagemId}
           categoriaId={formDespesa.categoriaId}
           membroId={formDespesa.membroId}
+          envolvidosIds={formDespesa.envolvidosIds}
           viagens={viagens}
           categorias={categorias}
           membros={membros}

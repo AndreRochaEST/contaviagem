@@ -52,17 +52,33 @@ function CartaoViagem({
   const calcularAcertos = () => {
     if (membrosDaViagem.length < 2 || totalGastoNumerico === 0) return [];
 
-    const quota = totalGastoNumerico / membrosDaViagem.length;
+    let saldosArray = membrosDaViagem.map(m => ({ id: String(m.id), nome: m.nome, saldo: 0 }));
 
-    const saldos = membrosDaViagem.map(m => {
-      const pagou = todasDespesasDaViagem
-        .filter(d => String(d.pago_por_id) === String(m.id))
-        .reduce((acc, curr) => acc + curr.valor, 0);
-      return { nome: m.nome, saldo: pagou - quota };
+    todasDespesasDaViagem.forEach(d => {
+      const valor = d.valor;
+      const pagadorId = d.pago_por_id;
+      const envolvidosString = d.envolvidos_ids || "";
+      
+      let envolvidosIds = envolvidosString.split(',').filter(id => id.trim() !== "");
+      if (envolvidosIds.length === 0) {
+        envolvidosIds = membrosDaViagem.map(m => String(m.id));
+      }
+
+      const quotaPorPessoa = valor / envolvidosIds.length;
+
+      if (pagadorId) {
+        const pagador = saldosArray.find(s => s.id === String(pagadorId));
+        if (pagador) pagador.saldo += valor;
+      }
+
+      envolvidosIds.forEach(envId => {
+        const envolvido = saldosArray.find(s => s.id === String(envId));
+        if (envolvido) envolvido.saldo -= quotaPorPessoa;
+      });
     });
 
-    let devedores = saldos.filter(s => s.saldo < -0.01).map(s => ({ ...s, saldo: Math.abs(s.saldo) }));
-    let credores = saldos.filter(s => s.saldo > 0.01);
+    let devedores = saldosArray.filter(s => s.saldo < -0.01).map(s => ({ ...s, saldo: Math.abs(s.saldo) }));
+    let credores = saldosArray.filter(s => s.saldo > 0.01);
 
     let transacoes = [];
     let i = 0;
@@ -197,7 +213,7 @@ function CartaoViagem({
             ) : (
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 <li style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '10px' }}>
-                  Quota por pessoa: <strong>{formatarMoeda(totalGastoNumerico / membrosDaViagem.length)}</strong>
+                  Total a dividir: <strong>{formatarMoeda(totalGastoNumerico)}</strong>
                 </li>
                 {acertos.length === 0 ? (
                   <li className="card-viagem__membro-vazio" style={{ color: '#16a34a', fontWeight: 'bold' }}>Tudo certo! Ninguém deve a ninguém. 🎉</li>
@@ -261,6 +277,11 @@ function CartaoViagem({
                 {d.pago_por_id && (
                   <small className="card-viagem__gasto-pagador" style={{ display: 'block', color: '#64748b', fontSize: '0.75rem', marginTop: '2px' }}>
                     Pago por: <strong>{membros.find(m => String(m.id) === String(d.pago_por_id))?.nome || 'Desconhecido'}</strong>
+                    {d.envolvidos_ids && (
+                      <span style={{ fontStyle: 'italic', marginLeft: '4px', color: '#94a3b8' }}>
+                        (apenas para alguns)
+                      </span>
+                    )}
                   </small>
                 )}
               </div>

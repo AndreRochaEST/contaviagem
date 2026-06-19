@@ -7,6 +7,7 @@ function FormDespesa({
   viagemId,
   categoriaId,
   membroId,
+  envolvidosIds = [],
   viagens,
   categorias,
   membros,
@@ -15,6 +16,16 @@ function FormDespesa({
 }) {
   
   const membrosDaViagem = membros ? membros.filter(m => m.viagem_id == viagemId) : [];
+
+  const handleCheckboxChange = (idStr) => {
+    let novos = [...envolvidosIds];
+    if (novos.includes(idStr)) {
+      novos = novos.filter(id => id !== idStr);
+    } else {
+      novos.push(idStr);
+    }
+    onChange('envolvidosIds', novos);
+  };
 
   return (
     <div className="form-container panel-animado form-despesa">
@@ -90,6 +101,25 @@ function FormDespesa({
             )}
           </select>
         </div>
+
+        {membrosDaViagem.length > 0 && (
+          <div className="form-despesa__envolvidos">
+            <label className="form-despesa__label">Para quem foi? (Deixa vazio para dividir por todos)</label>
+            <div className="form-despesa__checkboxes">
+              {membrosDaViagem.map(m => (
+                <label key={m.id} className="form-despesa__checkbox-label">
+                  <input 
+                    type="checkbox" 
+                    checked={envolvidosIds.includes(m.id.toString())}
+                    onChange={() => handleCheckboxChange(m.id.toString())}
+                  />
+                  {m.nome}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
         <button 
           type="button" 
           onClick={onSubmit}
