@@ -21,7 +21,7 @@ function CartaoViagem({
   onDeleteDespesa,
   onAddMembro,
   onDeleteMembro,
-  onLiquidar // <-- NOVA PROPRIEDADE
+  onLiquidar
 }) {
   const [novoMembroNome, setNovoMembroNome] = useState('');
   const [mostrarMembros, setMostrarMembros] = useState(false);
@@ -30,7 +30,6 @@ function CartaoViagem({
   const todasDespesasDaViagem = despesas.filter(d => d.viagem_id === viagem.id);
   const membrosDaViagem = membros.filter(m => m.viagem_id === viagem.id);
   
-  // SEPARAMOS AS DESPESAS REAIS DAS LIQUIDAÇÕES PARA NÃO ESTRAGAR O GRÁFICO
   const despesasReais = todasDespesasDaViagem.filter(d => !d.descricao.startsWith('Liquidação: '));
   
   const totalGastoNumerico = despesasReais.reduce((acc, d) => acc + d.valor, 0);
@@ -58,7 +57,6 @@ function CartaoViagem({
 
     let saldosArray = membrosDaViagem.map(m => ({ id: String(m.id), nome: m.nome, saldo: 0 }));
 
-    // A MATEMÁTICA LÊ TODAS AS DESPESAS INCLUINDO AS LIQUIDAÇÕES
     todasDespesasDaViagem.forEach(d => {
       const valor = d.valor;
       const pagadorId = d.pago_por_id;
@@ -97,9 +95,9 @@ function CartaoViagem({
 
       transacoes.push({
         de: devedor.nome,
-        deId: devedor.id, // <-- NOVO: GUARDA O ID PARA A FUNÇÃO DE PAGAR
+        deId: devedor.id,
         para: credor.nome,
-        paraId: credor.id, // <-- NOVO: GUARDA O ID PARA A FUNÇÃO DE PAGAR
+        paraId: credor.id,
         valor: valor
       });
 
@@ -114,6 +112,38 @@ function CartaoViagem({
   };
 
   const acertos = calcularAcertos();
+
+  const partilharWhatsApp = () => {
+    let texto = `🛫 *Resumo da Viagem: ${viagem.destino}*\n`;
+    texto += `📅 ${viagem.data_de_inicio} até ${viagem.data_de_fim}\n`;
+    texto += `💰 *Total Gasto:* ${formatarMoeda(totalGastoNumerico)}\n\n`;
+
+    if (membrosDaViagem.length > 0) {
+      texto += `👥 *Quem pagou o quê:*\n`;
+      membrosDaViagem.forEach(m => {
+        const totalPago = todasDespesasDaViagem
+          .filter(d => String(d.pago_por_id) === String(m.id))
+          .reduce((acc, curr) => acc + curr.valor, 0);
+        texto += `- ${m.nome}: ${formatarMoeda(totalPago)}\n`;
+      });
+      texto += `\n`;
+    }
+
+    if (acertos.length > 0) {
+      texto += `⚖️ *Acerto de Contas:*\n`;
+      acertos.forEach(t => {
+        texto += `- ${t.de} ➡️ ${t.para}: ${formatarMoeda(t.valor)}\n`;
+      });
+    } else if (membrosDaViagem.length > 1) {
+      texto += `⚖️ *Acerto de Contas:*\nTudo certo! Ninguém deve a ninguém. 🎉\n`;
+    }
+
+    texto += `\n_(Gerado via ContaViagem ✈️)_`;
+
+    const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank');
+  };
+  // --------------------------------------------
 
   return (
     <div className="card-viagem">
@@ -218,30 +248,39 @@ function CartaoViagem({
             ) : totalGastoNumerico === 0 ? (
               <span className="card-viagem__membro-vazio">Ainda não há gastos para dividir.</span>
             ) : (
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                <li style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '10px' }}>
-                  Total a dividir: <strong>{formatarMoeda(totalGastoNumerico)}</strong>
-                </li>
-                {acertos.length === 0 ? (
-                  <li className="card-viagem__membro-vazio" style={{ color: '#16a34a', fontWeight: 'bold' }}>Tudo certo! Ninguém deve a ninguém. 🎉</li>
-                ) : (
-                  acertos.map((t, idx) => (
-                    <li key={idx} style={{ padding: '10px 0', borderBottom: idx === acertos.length - 1 ? 'none' : '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
-                      <span><strong>{t.de}</strong> ➡️ <strong>{t.para}</strong></span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ color: '#dc2626', fontWeight: 'bold' }}>{formatarMoeda(t.valor)}</span>
-                        <button 
-                          onClick={() => onLiquidar(viagem.id, t.deId, t.paraId, t.valor, t.de, t.para)}
-                          style={{ background: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 10px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
-                          title="Marcar como pago"
-                        >
-                          ✅ Pagar
-                        </button>
-                      </div>
-                    </li>
-                  ))
-                )}
-              </ul>
+              <>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  <li style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '10px' }}>
+                    Total a dividir: <strong>{formatarMoeda(totalGastoNumerico)}</strong>
+                  </li>
+                  {acertos.length === 0 ? (
+                    <li className="card-viagem__membro-vazio" style={{ color: '#16a34a', fontWeight: 'bold' }}>Tudo certo! Ninguém deve a ninguém. 🎉</li>
+                  ) : (
+                    acertos.map((t, idx) => (
+                      <li key={idx} style={{ padding: '10px 0', borderBottom: idx === acertos.length - 1 ? 'none' : '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
+                        <span><strong>{t.de}</strong> ➡️ <strong>{t.para}</strong></span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ color: '#dc2626', fontWeight: 'bold' }}>{formatarMoeda(t.valor)}</span>
+                          <button 
+                            onClick={() => onLiquidar(viagem.id, t.deId, t.paraId, t.valor, t.de, t.para)}
+                            style={{ background: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 10px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
+                            title="Marcar como pago"
+                          >
+                            ✅ Pagar
+                          </button>
+                        </div>
+                      </li>
+                    ))
+                  )}
+                </ul>
+                
+                <button 
+                  onClick={partilharWhatsApp}
+                  style={{ width: '100%', marginTop: '15px', background: '#25D366', color: 'white', border: 'none', padding: '10px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+                >
+                  📱 Partilhar no WhatsApp
+                </button>
+              </>
             )}
           </div>
         )}
