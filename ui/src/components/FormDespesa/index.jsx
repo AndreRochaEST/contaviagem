@@ -1,4 +1,7 @@
+import React from 'react';
 import './index.less';
+import SeccaoCambio from './SeccaoCambio';
+import SeccaoEnvolvidos from './SeccaoEnvolvidos';
 
 function FormDespesa({ 
   editando, 
@@ -20,16 +23,6 @@ function FormDespesa({
 }) {
   
   const membrosDaViagem = membros ? membros.filter(m => m.viagem_id == viagemId) : [];
-
-  const handleCheckboxChange = (idStr) => {
-    let novos = [...envolvidosIds];
-    if (novos.includes(idStr)) {
-      novos = novos.filter(id => id !== idStr);
-    } else {
-      novos.push(idStr);
-    }
-    onChange('envolvidosIds', novos);
-  };
 
   return (
     <div className="form-container panel-animado form-despesa">
@@ -59,8 +52,11 @@ function FormDespesa({
             onChange={(e) => onChange('valor', e.target.value)}
             placeholder="0.00" 
             disabled={usarCambio}
-            style={{ backgroundColor: usarCambio ? '#f1f5f9' : '#fff', color: usarCambio ? '#16a34a' : 'inherit', fontWeight: usarCambio ? 'bold' : 'normal' }}
-            title={usarCambio ? "Calculado automaticamente pelo câmbio" : ""}
+            style={{ 
+              backgroundColor: usarCambio ? '#f1f5f9' : '#fff', 
+              color: usarCambio ? '#16a34a' : 'inherit', 
+              fontWeight: usarCambio ? 'bold' : 'normal' 
+            }}
           />
         </div>
 
@@ -75,42 +71,13 @@ function FormDespesa({
           </label>
         </div>
 
-        {usarCambio && (
-          <div className="form-despesa__cambio-box">
-            <div className="form-despesa__field form-despesa__field--small">
-              <label className="form-despesa__label">Moeda</label>
-              <select className="form-despesa__input" value={moeda} onChange={e => onChange('moeda', e.target.value)}>
-                <option value="GBP">GBP (£)</option>
-                <option value="USD">USD ($)</option>
-                <option value="CHF">CHF (Fr)</option>
-                <option value="BRL">BRL (R$)</option>
-                <option value="JPY">JPY (¥)</option>
-              </select>
-            </div>
-            <div className="form-despesa__field form-despesa__field--flex">
-              <label className="form-despesa__label">Valor na Moeda Original</label>
-              <input 
-                className="form-despesa__input"
-                type="number" 
-                step="0.01" 
-                value={valorEstrangeiro} 
-                onChange={(e) => onChange('valorEstrangeiro', e.target.value)}
-                placeholder="Ex: 50.00" 
-              />
-            </div>
-            <div className="form-despesa__field form-despesa__field--flex">
-              <label className="form-despesa__label">Taxa de Conversão para €</label>
-              <input 
-                className="form-despesa__input"
-                type="number" 
-                step="0.0001" 
-                value={taxaCambio} 
-                onChange={(e) => onChange('taxaCambio', e.target.value)}
-                placeholder="Ex: 1.17" 
-              />
-            </div>
-          </div>
-        )}
+        <SeccaoCambio 
+          usarCambio={usarCambio}
+          moeda={moeda}
+          valorEstrangeiro={valorEstrangeiro}
+          taxaCambio={taxaCambio}
+          onChange={onChange}
+        />
 
         <div className="form-despesa__field form-despesa__field--flex">
           <label className="form-despesa__label">Viagem</label>
@@ -157,23 +124,11 @@ function FormDespesa({
           </select>
         </div>
 
-        {membrosDaViagem.length > 0 && (
-          <div className="form-despesa__envolvidos">
-            <label className="form-despesa__label">Para quem foi? (Deixa vazio para dividir por todos)</label>
-            <div className="form-despesa__checkboxes">
-              {membrosDaViagem.map(m => (
-                <label key={m.id} className="form-despesa__checkbox-label">
-                  <input 
-                    type="checkbox" 
-                    checked={envolvidosIds.includes(m.id.toString())}
-                    onChange={() => handleCheckboxChange(m.id.toString())}
-                  />
-                  {m.nome}
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
+        <SeccaoEnvolvidos 
+          membrosDaViagem={membrosDaViagem}
+          envolvidosIds={envolvidosIds}
+          onChange={onChange}
+        />
 
         <button 
           type="button" 
