@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { calcularOrcamento, filtrarDespesas, agruparDespesasPorCategoria } from '../../utils';
+import { calcularOrcamento, filtrarDespesas, agruparDespesasPorCategoria, calcularGastosPorPessoa } from '../../utils';
 import './index.less';
 
 import CabecalhoOrcamento from './CabecalhoOrcamento';
@@ -28,13 +28,7 @@ function CartaoViagem({
   const despesasFiltradas = filtrarDespesas(todasDespesasDaViagem, filtroTexto, filtroCategoria);
   
   const gastosPorCategoria = agruparDespesasPorCategoria(despesasReais);
-  const gastosPorPessoa = despesasReais.reduce((acc, d) => {
-    const pagador = membrosDaViagem.find(m => String(m.id) === String(d.pago_por_id));
-    const nome = pagador ? pagador.nome : 'Sem atribuição';
-    if (!acc[nome]) acc[nome] = 0;
-    acc[nome] += d.valor;
-    return acc;
-  }, {});
+  const gastosPorPessoa = calcularGastosPorPessoa(despesasReais, membrosDaViagem);
 
   const dadosExibicao = tipoGrafico === 'categoria' ? gastosPorCategoria : gastosPorPessoa;
   const dadosGrafico = Object.entries(dadosExibicao).map(([name, value]) => ({ name, value }));
@@ -65,7 +59,7 @@ function CartaoViagem({
       />
 
       <SeccaoDespesas 
-        despesasFiltradas={despesasFiltradas} membros={membros} 
+        despesasFiltradas={despesasFiltradas} membros={membros}
         onEditDespesa={onEditDespesa} onDeleteDespesa={onDeleteDespesa}
       />
     </div>

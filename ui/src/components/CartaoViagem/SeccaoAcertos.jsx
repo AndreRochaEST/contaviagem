@@ -1,46 +1,9 @@
 import React from 'react';
-import { formatarMoeda } from '../../utils';
+import { formatarMoeda, calcularTransacoesAcerto } from '../../utils';
 
 const SeccaoAcertos = ({ mostrarAcertos, setMostrarAcertos, setMostrarMembros, membrosDaViagem, todasDespesasDaViagem, totalGastoNumerico, viagem, onLiquidar }) => {
   
-  const calcularAcertos = () => {
-    if (membrosDaViagem.length < 2 || todasDespesasDaViagem.length === 0) return [];
-    let saldosArray = membrosDaViagem.map(m => ({ id: String(m.id), nome: m.nome, saldo: 0 }));
-
-    todasDespesasDaViagem.forEach(d => {
-      const valor = d.valor;
-      let envolvidosIds = (d.envolvidos_ids || "").split(',').filter(id => id.trim() !== "");
-      if (envolvidosIds.length === 0) envolvidosIds = membrosDaViagem.map(m => String(m.id));
-      const quotaPorPessoa = valor / envolvidosIds.length;
-
-      if (d.pago_por_id) {
-        const pagador = saldosArray.find(s => s.id === String(d.pago_por_id));
-        if (pagador) pagador.saldo += valor;
-      }
-      envolvidosIds.forEach(envId => {
-        const envolvido = saldosArray.find(s => s.id === String(envId));
-        if (envolvido) envolvido.saldo -= quotaPorPessoa;
-      });
-    });
-
-    let devedores = saldosArray.filter(s => s.saldo < -0.01).map(s => ({ ...s, saldo: Math.abs(s.saldo) }));
-    let credores = saldosArray.filter(s => s.saldo > 0.01);
-    let transacoes = [];
-    let i = 0, j = 0;
-
-    while (i < devedores.length && j < credores.length) {
-      let dev = devedores[i], cred = credores[j];
-      let valor = Math.min(dev.saldo, cred.saldo);
-      transacoes.push({ de: dev.nome, deId: dev.id, para: cred.nome, paraId: cred.id, valor });
-      dev.saldo -= valor;
-      cred.saldo -= valor;
-      if (dev.saldo < 0.01) i++;
-      if (cred.saldo < 0.01) j++;
-    }
-    return transacoes;
-  };
-
-  const acertos = calcularAcertos();
+  const acertos = calcularTransacoesAcerto(membrosDaViagem, todasDespesasDaViagem);
 
   const partilharWhatsApp = () => {
     let texto = `🛫 *Resumo da Viagem: ${viagem.destino}*\n📅 ${viagem.data_de_inicio} até ${viagem.data_de_fim}\n💰 *Total Gasto:* ${formatarMoeda(totalGastoNumerico)}\n\n`;
