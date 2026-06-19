@@ -161,6 +161,31 @@ function DashboardContainer() {
     }
   };
 
+  const handleLiquidar = async (viagemId, devedorId, credorId, valor, deNome, paraNome) => {
+    if (!window.confirm(`Confirmas que o/a ${deNome} pagou ${valor.toFixed(2)}€ ao/à ${paraNome}?`)) return;
+
+    const dados = {
+      descricao: `Liquidação: ${deNome} ➡️ ${paraNome}`,
+      valor: parseFloat(valor),
+      viagem_id: parseInt(viagemId),
+      categoria_id: categorias.length > 0 ? parseInt(categorias[0].id) : 1,
+      pago_por_id: parseInt(devedorId),
+      envolvidos_ids: credorId.toString()
+    };
+
+    try {
+      const result = await criarDespesa(dados);
+      if (result.sucesso) {
+        mostrarSucesso('Dívida liquidada com sucesso!');
+        if (typeof carregarDespesas === 'function') carregarDespesas();
+      } else {
+        mostrarErro('Erro ao liquidar dívida.');
+      }
+    } catch (error) {
+      mostrarErro(MENSAGENS.ERRO_COMUNICACAO);
+    }
+  };
+
   const submeterViagem = async () => {
     if (!formViagem.destino || !formViagem.dataInicio || !formViagem.dataFim || !formViagem.orcamento) {
       mostrarErro(MENSAGENS.ERRO_VIAGEM_VAZIA);
@@ -340,6 +365,7 @@ function DashboardContainer() {
             onDeleteDespesa={handleApagarDespesa}
             onAddMembro={handleAddMembro}
             onDeleteMembro={handleDeleteMembro}
+            onLiquidar={handleLiquidar}
           />
         ))}
       </div>

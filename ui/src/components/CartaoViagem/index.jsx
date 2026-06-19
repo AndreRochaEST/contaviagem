@@ -20,7 +20,8 @@ function CartaoViagem({
   onEditDespesa,
   onDeleteDespesa,
   onAddMembro,
-  onDeleteMembro
+  onDeleteMembro,
+  onLiquidar // <-- NOVA PROPRIEDADE
 }) {
   const [novoMembroNome, setNovoMembroNome] = useState('');
   const [mostrarMembros, setMostrarMembros] = useState(false);
@@ -29,11 +30,14 @@ function CartaoViagem({
   const todasDespesasDaViagem = despesas.filter(d => d.viagem_id === viagem.id);
   const membrosDaViagem = membros.filter(m => m.viagem_id === viagem.id);
   
-  const totalGastoNumerico = todasDespesasDaViagem.reduce((acc, d) => acc + d.valor, 0);
+  // SEPARAMOS AS DESPESAS REAIS DAS LIQUIDAÇÕES PARA NÃO ESTRAGAR O GRÁFICO
+  const despesasReais = todasDespesasDaViagem.filter(d => !d.descricao.startsWith('Liquidação: '));
+  
+  const totalGastoNumerico = despesasReais.reduce((acc, d) => acc + d.valor, 0);
   const { totalGasto, orcamentoRestante, excedido } = calcularOrcamento(viagem.orcamento, totalGastoNumerico);
   
   const despesasFiltradas = filtrarDespesas(todasDespesasDaViagem, filtroTexto, filtroCategoria);
-  const gastosPorCategoria = agruparDespesasPorCategoria(todasDespesasDaViagem);
+  const gastosPorCategoria = agruparDespesasPorCategoria(despesasReais);
 
   const corGasto = excedido ? '#dc2626' : '#16a34a';
   const corRestante = orcamentoRestante < 0 ? '#dc2626' : '#475569';
@@ -50,10 +54,11 @@ function CartaoViagem({
   };
 
   const calcularAcertos = () => {
-    if (membrosDaViagem.length < 2 || totalGastoNumerico === 0) return [];
+    if (membrosDaViagem.length < 2 || todasDespesasDaViagem.length === 0) return [];
 
     let saldosArray = membrosDaViagem.map(m => ({ id: String(m.id), nome: m.nome, saldo: 0 }));
 
+    // A MATEMÁTICA LÊ TODAS AS DESPESAS INCLUINDO AS LIQUIDAÇÕES
     todasDespesasDaViagem.forEach(d => {
       const valor = d.valor;
       const pagadorId = d.pago_por_id;
@@ -92,7 +97,9 @@ function CartaoViagem({
 
       transacoes.push({
         de: devedor.nome,
+        deId: devedor.id, // <-- NOVO: GUARDA O ID PARA A FUNÇÃO DE PAGAR
         para: credor.nome,
+        paraId: credor.id, // <-- NOVO: GUARDA O ID PARA A FUNÇÃO DE PAGAR
         valor: valor
       });
 
@@ -219,9 +226,18 @@ function CartaoViagem({
                   <li className="card-viagem__membro-vazio" style={{ color: '#16a34a', fontWeight: 'bold' }}>Tudo certo! Ninguém deve a ninguém. 🎉</li>
                 ) : (
                   acertos.map((t, idx) => (
-                    <li key={idx} style={{ padding: '8px 0', borderBottom: idx === acertos.length - 1 ? 'none' : '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
+                    <li key={idx} style={{ padding: '10px 0', borderBottom: idx === acertos.length - 1 ? 'none' : '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
                       <span><strong>{t.de}</strong> ➡️ <strong>{t.para}</strong></span>
-                      <span style={{ color: '#dc2626', fontWeight: 'bold' }}>{formatarMoeda(t.valor)}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ color: '#dc2626', fontWeight: 'bold' }}>{formatarMoeda(t.valor)}</span>
+                        <button 
+                          onClick={() => onLiquidar(viagem.id, t.deId, t.paraId, t.valor, t.de, t.para)}
+                          style={{ background: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 10px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
+                          title="Marcar como pago"
+                        >
+                          ✅ Pagar
+                        </button>
+                      </div>
                     </li>
                   ))
                 )}
@@ -269,39 +285,46 @@ function CartaoViagem({
         {despesasFiltradas.length === 0 ? (
           <li className="card-viagem__gasto-vazio">Nenhum gasto encontrado para os filtros ativos.</li>
         ) : (
-          despesasFiltradas.map(d => (
-            <li key={d.uid} className="card-viagem__gasto-item">
-              <div>
-                <span className="card-viagem__gasto-descricao">{d.descricao}</span>
-                <small className="card-viagem__gasto-tag">{d.categoria_name || d.categoria_nome}</small>
-                {d.pago_por_id && (
-                  <small className="card-viagem__gasto-pagador" style={{ display: 'block', color: '#64748b', fontSize: '0.75rem', marginTop: '2px' }}>
-                    Pago por: <strong>{membros.find(m => String(m.id) === String(d.pago_por_id))?.nome || 'Desconhecido'}</strong>
-                    {d.envolvidos_ids && (
-                      <span style={{ fontStyle: 'italic', marginLeft: '4px', color: '#94a3b8' }}>
-                        (apenas para alguns)
-                      </span>
-                    )}
-                  </small>
-                )}
-              </div>
-              <div className="card-viagem__gasto-acoes">
-                <span className="card-viagem__gasto-valor">{formatarMoeda(d.valor)}</span>
-                <button 
-                  className="card-viagem__btn-edit" 
-                  onClick={() => onEditDespesa(d)}
-                >
-                  ✏️
-                </button>
-                <button 
-                  className="card-viagem__btn-delete" 
-                  onClick={() => onDeleteDespesa(d.uid)}
-                >
-                  ✖
-                </button>
-              </div>
-            </li>
-          ))
+          despesasFiltradas.map(d => {
+            const isLiquidacao = d.descricao.startsWith('Liquidação: ');
+            return (
+              <li key={d.uid} className="card-viagem__gasto-item" style={{ opacity: isLiquidacao ? 0.6 : 1 }}>
+                <div>
+                  <span className="card-viagem__gasto-descricao">
+                    {isLiquidacao ? '💸 ' : ''}{d.descricao}
+                  </span>
+                  <small className="card-viagem__gasto-tag">{d.categoria_name || d.categoria_nome}</small>
+                  {d.pago_por_id && !isLiquidacao && (
+                    <small className="card-viagem__gasto-pagador" style={{ display: 'block', color: '#64748b', fontSize: '0.75rem', marginTop: '2px' }}>
+                      Pago por: <strong>{membros.find(m => String(m.id) === String(d.pago_por_id))?.nome || 'Desconhecido'}</strong>
+                      {d.envolvidos_ids && (
+                        <span style={{ fontStyle: 'italic', marginLeft: '4px', color: '#94a3b8' }}>
+                          (apenas para alguns)
+                        </span>
+                      )}
+                    </small>
+                  )}
+                </div>
+                <div className="card-viagem__gasto-acoes">
+                  <span className="card-viagem__gasto-valor" style={{ color: isLiquidacao ? '#16a34a' : '#334155' }}>
+                    {isLiquidacao ? '+' : ''}{formatarMoeda(d.valor)}
+                  </span>
+                  <button 
+                    className="card-viagem__btn-edit" 
+                    onClick={() => onEditDespesa(d)}
+                  >
+                    ✏️
+                  </button>
+                  <button 
+                    className="card-viagem__btn-delete" 
+                    onClick={() => onDeleteDespesa(d.uid)}
+                  >
+                    ✖
+                  </button>
+                </div>
+              </li>
+            );
+          })
         )}
       </ul>
     </div>
