@@ -23,13 +23,19 @@ function DashboardContainer() {
   const [filtroCategoria, setFiltroCategoria] = useState('todos');
 
   const [editDespesaUid, setEditDespesaUid] = useState(null);
+  
+  // NOVO ESTADO COM OS DADOS DE CÂMBIO
   const [formDespesa, setFormDespesa] = useState({
     descricao: '',
     valor: '',
     viagemId: '',
     categoriaId: '',
     membroId: '',
-    envolvidosIds: []
+    envolvidosIds: [],
+    usarCambio: false,
+    moeda: 'GBP',
+    valorEstrangeiro: '',
+    taxaCambio: ''
   });
 
   const [editViagemUid, setEditViagemUid] = useState(null);
@@ -60,7 +66,11 @@ function DashboardContainer() {
       viagemId: viagens[0]?.id || '',
       categoriaId: categorias[0]?.id.toString() || '',
       membroId: '',
-      envolvidosIds: []
+      envolvidosIds: [],
+      usarCambio: false,
+      moeda: 'GBP',
+      valorEstrangeiro: '',
+      taxaCambio: ''
     });
   };
 
@@ -94,7 +104,11 @@ function DashboardContainer() {
       viagemId: d.viagem_id,
       categoriaId: (d.categoria_id || d.categoria_id_selecionada || '').toString(),
       membroId: (d.pago_por_id || '').toString(),
-      envolvidosIds: d.envolvidos_ids ? d.envolvidos_ids.split(',').filter(x => x) : []
+      envolvidosIds: d.envolvidos_ids ? d.envolvidos_ids.split(',').filter(x => x) : [],
+      usarCambio: false,
+      moeda: 'GBP',
+      valorEstrangeiro: '',
+      taxaCambio: ''
     });
     setMostrarFormDespesa(true);
     setMostrarFormViagem(false);
@@ -112,12 +126,27 @@ function DashboardContainer() {
     setMostrarFormDespesa(false);
   };
 
-  const handleChangeFormViagem = (field, value) => {
-    setFormViagem(prev => ({ ...prev, [field]: value }));
+  // MAGIA DA MULTIPLICAÇÃO AQUI
+  const handleChangeFormDespesa = (field, value) => {
+    setFormDespesa(prev => {
+      const newState = { ...prev, [field]: value };
+      
+      if (newState.usarCambio && (field === 'valorEstrangeiro' || field === 'taxaCambio' || field === 'usarCambio')) {
+        const vEst = parseFloat(newState.valorEstrangeiro) || 0;
+        const taxa = parseFloat(newState.taxaCambio) || 0;
+        if (vEst > 0 && taxa > 0) {
+          newState.valor = (vEst * taxa).toFixed(2);
+        } else {
+          newState.valor = '';
+        }
+      }
+      
+      return newState;
+    });
   };
 
-  const handleChangeFormDespesa = (field, value) => {
-    setFormDespesa(prev => ({ ...prev, [field]: value }));
+  const handleChangeFormViagem = (field, value) => {
+    setFormViagem(prev => ({ ...prev, [field]: value }));
   };
 
   const submeterDespesa = async () => {
@@ -126,8 +155,14 @@ function DashboardContainer() {
       return;
     }
 
+    // Se usamos câmbio, guardamos a prova na descrição!
+    let descricaoFinal = formDespesa.descricao;
+    if (formDespesa.usarCambio && formDespesa.valorEstrangeiro && formDespesa.taxaCambio) {
+      descricaoFinal += ` (${formDespesa.valorEstrangeiro} ${formDespesa.moeda} à taxa de ${formDespesa.taxaCambio})`;
+    }
+
     const dados = {
-      descricao: formDespesa.descricao,
+      descricao: descricaoFinal,
       valor: parseFloat(formDespesa.valor),
       viagem_id: parseInt(formDespesa.viagemId),
       categoria_id: parseInt(formDespesa.categoriaId)
@@ -316,6 +351,10 @@ function DashboardContainer() {
           categoriaId={formDespesa.categoriaId}
           membroId={formDespesa.membroId}
           envolvidosIds={formDespesa.envolvidosIds}
+          usarCambio={formDespesa.usarCambio}
+          moeda={formDespesa.moeda}
+          valorEstrangeiro={formDespesa.valorEstrangeiro}
+          taxaCambio={formDespesa.taxaCambio}
           viagens={viagens}
           categorias={categorias}
           membros={membros}
