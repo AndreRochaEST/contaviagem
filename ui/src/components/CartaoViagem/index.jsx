@@ -24,6 +24,7 @@ function CartaoViagem({
 }) {
   const [novoMembroNome, setNovoMembroNome] = useState('');
   const [mostrarMembros, setMostrarMembros] = useState(false);
+  const [mostrarAcertos, setMostrarAcertos] = useState(false);
 
   const todasDespesasDaViagem = despesas.filter(d => d.viagem_id === viagem.id);
   const membrosDaViagem = membros.filter(m => m.viagem_id === viagem.id);
@@ -47,6 +48,49 @@ function CartaoViagem({
     onAddMembro(viagem.id, novoMembroNome.trim());
     setNovoMembroNome('');
   };
+
+  const calcularAcertos = () => {
+    if (membrosDaViagem.length < 2 || totalGastoNumerico === 0) return [];
+
+    const quota = totalGastoNumerico / membrosDaViagem.length;
+
+    const saldos = membrosDaViagem.map(m => {
+      const pagou = todasDespesasDaViagem
+        .filter(d => String(d.pago_por_id) === String(m.id))
+        .reduce((acc, curr) => acc + curr.valor, 0);
+      return { nome: m.nome, saldo: pagou - quota };
+    });
+
+    let devedores = saldos.filter(s => s.saldo < -0.01).map(s => ({ ...s, saldo: Math.abs(s.saldo) }));
+    let credores = saldos.filter(s => s.saldo > 0.01);
+
+    let transacoes = [];
+    let i = 0;
+    let j = 0;
+
+    while (i < devedores.length && j < credores.length) {
+      let devedor = devedores[i];
+      let credor = credores[j];
+
+      let valor = Math.min(devedor.saldo, credor.saldo);
+
+      transacoes.push({
+        de: devedor.nome,
+        para: credor.nome,
+        valor: valor
+      });
+
+      devedor.saldo -= valor;
+      credor.saldo -= valor;
+
+      if (devedor.saldo < 0.01) i++;
+      if (credor.saldo < 0.01) j++;
+    }
+
+    return transacoes;
+  };
+
+  const acertos = calcularAcertos();
 
   return (
     <div className="card-viagem">
@@ -92,7 +136,7 @@ function CartaoViagem({
       <div className="card-viagem__membros-container">
         <button 
           className="card-viagem__membros-toggle"
-          onClick={() => setMostrarMembros(!mostrarMembros)}
+          onClick={() => { setMostrarMembros(!mostrarMembros); setMostrarAcertos(false); }}
         >
           <span>👥 Participantes ({membrosDaViagem.length})</span>
           <span>{mostrarMembros ? '▲' : '▼'}</span>
@@ -103,7 +147,6 @@ function CartaoViagem({
             <div className="card-viagem__membros-lista">
               {membrosDaViagem.length === 0 && <span className="card-viagem__membro-vazio">Nenhum participante adicionado.</span>}
               {membrosDaViagem.map(m => {
-                // CORREÇÃO: Agora procuramos exatamente pelo pago_por_id como texto
                 const totalPago = todasDespesasDaViagem
                   .filter(d => String(d.pago_por_id) === String(m.id))
                   .reduce((acc, curr) => acc + curr.valor, 0);
@@ -132,6 +175,42 @@ function CartaoViagem({
               />
               <button className="card-viagem__membros-btn" onClick={handleAddMembro}>+</button>
             </div>
+          </div>
+        )}
+      </div>
+
+      <div className="card-viagem__membros-container" style={{ marginTop: '-10px' }}>
+        <button 
+          className="card-viagem__membros-toggle"
+          onClick={() => { setMostrarAcertos(!mostrarAcertos); setMostrarMembros(false); }}
+        >
+          <span>⚖️ Acerto de Contas</span>
+          <span>{mostrarAcertos ? '▲' : '▼'}</span>
+        </button>
+
+        {mostrarAcertos && (
+          <div className="card-viagem__membros-content">
+            {membrosDaViagem.length < 2 ? (
+              <span className="card-viagem__membro-vazio">Adiciona pelo menos 2 participantes para fazer acertos.</span>
+            ) : totalGastoNumerico === 0 ? (
+              <span className="card-viagem__membro-vazio">Ainda não há gastos para dividir.</span>
+            ) : (
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                <li style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '10px' }}>
+                  Quota por pessoa: <strong>{formatarMoeda(totalGastoNumerico / membrosDaViagem.length)}</strong>
+                </li>
+                {acertos.length === 0 ? (
+                  <li className="card-viagem__membro-vazio" style={{ color: '#16a34a', fontWeight: 'bold' }}>Tudo certo! Ninguém deve a ninguém. 🎉</li>
+                ) : (
+                  acertos.map((t, idx) => (
+                    <li key={idx} style={{ padding: '8px 0', borderBottom: idx === acertos.length - 1 ? 'none' : '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
+                      <span><strong>{t.de}</strong> ➡️ <strong>{t.para}</strong></span>
+                      <span style={{ color: '#dc2626', fontWeight: 'bold' }}>{formatarMoeda(t.valor)}</span>
+                    </li>
+                  ))
+                )}
+              </ul>
+            )}
           </div>
         )}
       </div>
@@ -179,8 +258,6 @@ function CartaoViagem({
               <div>
                 <span className="card-viagem__gasto-descricao">{d.descricao}</span>
                 <small className="card-viagem__gasto-tag">{d.categoria_name || d.categoria_nome}</small>
-                
-                {/* CORREÇÃO: Usar o pago_por_id para mostrar o nome debaixo da despesa */}
                 {d.pago_por_id && (
                   <small className="card-viagem__gasto-pagador" style={{ display: 'block', color: '#64748b', fontSize: '0.75rem', marginTop: '2px' }}>
                     Pago por: <strong>{membros.find(m => String(m.id) === String(d.pago_por_id))?.nome || 'Desconhecido'}</strong>
