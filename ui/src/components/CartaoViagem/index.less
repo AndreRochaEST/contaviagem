@@ -225,6 +225,36 @@
     color: #64748b;
     padding: 12px 0;
   }
+
+  &__grafico-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 25px;
+    margin-bottom: 15px;
+  }
+
+  &__btn-grafico {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    color: #475569;
+    transition: all 0.2s ease;
+
+    &.ativo {
+      background: #3b82f6;
+      color: white;
+      border-color: #3b82f6;
+      font-weight: bold;
+    }
+    
+    &:hover:not(.ativo) {
+      background: #e2e8f0;
+    }
+  }
 }
 
 @keyframes fadeIn {

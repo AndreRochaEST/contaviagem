@@ -27,6 +27,8 @@ function CartaoViagem({
   const [mostrarMembros, setMostrarMembros] = useState(false);
   const [mostrarAcertos, setMostrarAcertos] = useState(false);
 
+  const [tipoGrafico, setTipoGrafico] = useState('categoria');
+
   const todasDespesasDaViagem = despesas.filter(d => d.viagem_id === viagem.id);
   const membrosDaViagem = membros.filter(m => m.viagem_id === viagem.id);
   
@@ -36,12 +38,23 @@ function CartaoViagem({
   const { totalGasto, orcamentoRestante, excedido } = calcularOrcamento(viagem.orcamento, totalGastoNumerico);
   
   const despesasFiltradas = filtrarDespesas(todasDespesasDaViagem, filtroTexto, filtroCategoria);
+  
   const gastosPorCategoria = agruparDespesasPorCategoria(despesasReais);
+
+  const gastosPorPessoa = despesasReais.reduce((acc, d) => {
+    const pagador = membrosDaViagem.find(m => String(m.id) === String(d.pago_por_id));
+    const nome = pagador ? pagador.nome : 'Sem atribuição';
+    if (!acc[nome]) acc[nome] = 0;
+    acc[nome] += d.valor;
+    return acc;
+  }, {});
+
+  const dadosExibicao = tipoGrafico === 'categoria' ? gastosPorCategoria : gastosPorPessoa;
 
   const corGasto = excedido ? '#dc2626' : '#16a34a';
   const corRestante = orcamentoRestante < 0 ? '#dc2626' : '#475569';
 
-  const dadosGrafico = Object.entries(gastosPorCategoria).map(([name, value]) => ({
+  const dadosGrafico = Object.entries(dadosExibicao).map(([name, value]) => ({
     name,
     value
   }));
@@ -143,7 +156,6 @@ function CartaoViagem({
     const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
     window.open(url, '_blank');
   };
-  // --------------------------------------------
 
   return (
     <div className="card-viagem">
@@ -287,36 +299,52 @@ function CartaoViagem({
       </div>
 
       {dadosGrafico.length > 0 && (
-        <div className="card-viagem__chart-wrapper">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={dadosGrafico}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={75}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {dadosGrafico.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={CORES_GRAFICO[index % CORES_GRAFICO.length]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => formatarMoeda(value)} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      )}
+        <>
+          <div className="card-viagem__grafico-toggle">
+            <button 
+              className={`card-viagem__btn-grafico ${tipoGrafico === 'categoria' ? 'ativo' : ''}`}
+              onClick={() => setTipoGrafico('categoria')}
+            >
+              📊 Por Categoria
+            </button>
+            <button 
+              className={`card-viagem__btn-grafico ${tipoGrafico === 'pessoa' ? 'ativo' : ''}`}
+              onClick={() => setTipoGrafico('pessoa')}
+            >
+              👤 Por Pessoa
+            </button>
+          </div>
 
-      {Object.keys(gastosPorCategoria).length > 0 && (
-        <div className="card-viagem__metricas">
-          {Object.entries(gastosPorCategoria).map(([cat, valor], index) => (
-            <span key={cat} className="card-viagem__metrica-badge" style={{ '--badge-color': CORES_GRAFICO[index % CORES_GRAFICO.length] }}>
-              {cat}: {formatarMoeda(valor)}
-            </span>
-          ))}
-        </div>
+          <div className="card-viagem__chart-wrapper">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={dadosGrafico}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={75}
+                  paddingAngle={5}
+                  dataKey="value"
+                  animationDuration={600}
+                >
+                  {dadosGrafico.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={CORES_GRAFICO[index % CORES_GRAFICO.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => formatarMoeda(value)} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="card-viagem__metricas">
+            {Object.entries(dadosExibicao).map(([nomeOuCategoria, valor], index) => (
+              <span key={nomeOuCategoria} className="card-viagem__metrica-badge" style={{ '--badge-color': CORES_GRAFICO[index % CORES_GRAFICO.length] }}>
+                {nomeOuCategoria}: {formatarMoeda(valor)}
+              </span>
+            ))}
+          </div>
+        </>
       )}
 
       <h4 className="card-viagem__gastos-titulo">Gastos Registados:</h4>
