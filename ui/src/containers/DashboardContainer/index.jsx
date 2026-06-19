@@ -130,7 +130,7 @@ function DashboardContainer() {
   const handleChangeFormDespesa = (field, value) => {
     setFormDespesa(prev => {
       const newState = { ...prev, [field]: value };
-      if (newState.usarCambio && (field === 'valorEstrangeiro' || field === 'taxaCambio' || field === 'usarCambio')) {
+      if (newState.usarCambio && (field === 'valorEstrangeiro' || field === 'taxaCambio' || field === 'usarCambio' || field === 'moeda')) {
         const vEst = parseFloat(newState.valorEstrangeiro) || 0;
         const taxa = parseFloat(newState.taxaCambio) || 0;
         if (vEst > 0 && taxa > 0) {
@@ -141,6 +141,18 @@ function DashboardContainer() {
       }
       return newState;
     });
+
+    if ((field === 'moeda' && formDespesa.usarCambio) || (field === 'usarCambio' && value === true)) {
+      const moedaConsulta = field === 'moeda' ? value : formDespesa.moeda;
+      fetch(`https://open.er-api.com/v6/latest/${moedaConsulta}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.rates && data.rates.EUR) {
+            handleChangeFormDespesa('taxaCambio', data.rates.EUR);
+          }
+        })
+        .catch(() => {});
+    }
   };
 
   const handleChangeFormViagem = (field, value) => {

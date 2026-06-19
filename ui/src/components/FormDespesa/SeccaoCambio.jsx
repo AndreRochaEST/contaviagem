@@ -27,7 +27,7 @@ const SeccaoCambio = ({ usarCambio, moeda, valorEstrangeiro, taxaCambio, onChang
         />
       </div>
       <div className="form-despesa__field form-despesa__field--flex">
-        <label className="form-despesa__label">Taxa de Conversão para €</label>
+        <label className="form-despesa__label">Taxa p/ € </label>
         <input 
           className="form-despesa__input"
           type="number" 
