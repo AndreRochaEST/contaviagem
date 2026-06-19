@@ -1,46 +1,33 @@
 import React, { useState } from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import { 
-  formatarMoeda, 
-  calcularOrcamento, 
-  filtrarDespesas, 
-  agruparDespesasPorCategoria, 
-  CORES_GRAFICO 
-} from '../../utils';
+import { calcularOrcamento, filtrarDespesas, agruparDespesasPorCategoria } from '../../utils';
 import './index.less';
 
+import CabecalhoOrcamento from './CabecalhoOrcamento';
+import SeccaoMembros from './SeccaoMembros';
+import SeccaoAcertos from './SeccaoAcertos';
+import SeccaoGraficos from './SeccaoGraficos';
+import SeccaoDespesas from './SeccaoDespesas';
+
 function CartaoViagem({ 
-  viagem, 
-  despesas,
-  membros = [],
-  filtroTexto, 
-  filtroCategoria,
-  onEdit,
-  onDelete,
-  onEditDespesa,
-  onDeleteDespesa,
-  onAddMembro,
-  onDeleteMembro,
-  onLiquidar
+  viagem, despesas, membros = [], filtroTexto, filtroCategoria,
+  onEdit, onDelete, onEditDespesa, onDeleteDespesa, onAddMembro, onDeleteMembro, onLiquidar
 }) {
-  const [novoMembroNome, setNovoMembroNome] = useState('');
   const [mostrarMembros, setMostrarMembros] = useState(false);
   const [mostrarAcertos, setMostrarAcertos] = useState(false);
-
   const [tipoGrafico, setTipoGrafico] = useState('categoria');
 
   const todasDespesasDaViagem = despesas.filter(d => d.viagem_id === viagem.id);
   const membrosDaViagem = membros.filter(m => m.viagem_id === viagem.id);
-  
   const despesasReais = todasDespesasDaViagem.filter(d => !d.descricao.startsWith('Liquidação: '));
   
   const totalGastoNumerico = despesasReais.reduce((acc, d) => acc + d.valor, 0);
   const { totalGasto, orcamentoRestante, excedido } = calcularOrcamento(viagem.orcamento, totalGastoNumerico);
-  
+  const corGasto = excedido ? '#dc2626' : '#16a34a';
+  const corRestante = orcamentoRestante < 0 ? '#dc2626' : '#475569';
+
   const despesasFiltradas = filtrarDespesas(todasDespesasDaViagem, filtroTexto, filtroCategoria);
   
   const gastosPorCategoria = agruparDespesasPorCategoria(despesasReais);
-
   const gastosPorPessoa = despesasReais.reduce((acc, d) => {
     const pagador = membrosDaViagem.find(m => String(m.id) === String(d.pago_por_id));
     const nome = pagador ? pagador.nome : 'Sem atribuição';
@@ -50,350 +37,37 @@ function CartaoViagem({
   }, {});
 
   const dadosExibicao = tipoGrafico === 'categoria' ? gastosPorCategoria : gastosPorPessoa;
-
-  const corGasto = excedido ? '#dc2626' : '#16a34a';
-  const corRestante = orcamentoRestante < 0 ? '#dc2626' : '#475569';
-
-  const dadosGrafico = Object.entries(dadosExibicao).map(([name, value]) => ({
-    name,
-    value
-  }));
-
-  const handleAddMembro = () => {
-    if (!novoMembroNome.trim()) return;
-    onAddMembro(viagem.id, novoMembroNome.trim());
-    setNovoMembroNome('');
-  };
-
-  const calcularAcertos = () => {
-    if (membrosDaViagem.length < 2 || todasDespesasDaViagem.length === 0) return [];
-
-    let saldosArray = membrosDaViagem.map(m => ({ id: String(m.id), nome: m.nome, saldo: 0 }));
-
-    todasDespesasDaViagem.forEach(d => {
-      const valor = d.valor;
-      const pagadorId = d.pago_por_id;
-      const envolvidosString = d.envolvidos_ids || "";
-      
-      let envolvidosIds = envolvidosString.split(',').filter(id => id.trim() !== "");
-      if (envolvidosIds.length === 0) {
-        envolvidosIds = membrosDaViagem.map(m => String(m.id));
-      }
-
-      const quotaPorPessoa = valor / envolvidosIds.length;
-
-      if (pagadorId) {
-        const pagador = saldosArray.find(s => s.id === String(pagadorId));
-        if (pagador) pagador.saldo += valor;
-      }
-
-      envolvidosIds.forEach(envId => {
-        const envolvido = saldosArray.find(s => s.id === String(envId));
-        if (envolvido) envolvido.saldo -= quotaPorPessoa;
-      });
-    });
-
-    let devedores = saldosArray.filter(s => s.saldo < -0.01).map(s => ({ ...s, saldo: Math.abs(s.saldo) }));
-    let credores = saldosArray.filter(s => s.saldo > 0.01);
-
-    let transacoes = [];
-    let i = 0;
-    let j = 0;
-
-    while (i < devedores.length && j < credores.length) {
-      let devedor = devedores[i];
-      let credor = credores[j];
-
-      let valor = Math.min(devedor.saldo, credor.saldo);
-
-      transacoes.push({
-        de: devedor.nome,
-        deId: devedor.id,
-        para: credor.nome,
-        paraId: credor.id,
-        valor: valor
-      });
-
-      devedor.saldo -= valor;
-      credor.saldo -= valor;
-
-      if (devedor.saldo < 0.01) i++;
-      if (credor.saldo < 0.01) j++;
-    }
-
-    return transacoes;
-  };
-
-  const acertos = calcularAcertos();
-
-  const partilharWhatsApp = () => {
-    let texto = `🛫 *Resumo da Viagem: ${viagem.destino}*\n`;
-    texto += `📅 ${viagem.data_de_inicio} até ${viagem.data_de_fim}\n`;
-    texto += `💰 *Total Gasto:* ${formatarMoeda(totalGastoNumerico)}\n\n`;
-
-    if (membrosDaViagem.length > 0) {
-      texto += `👥 *Quem pagou o quê:*\n`;
-      membrosDaViagem.forEach(m => {
-        const totalPago = todasDespesasDaViagem
-          .filter(d => String(d.pago_por_id) === String(m.id))
-          .reduce((acc, curr) => acc + curr.valor, 0);
-        texto += `- ${m.nome}: ${formatarMoeda(totalPago)}\n`;
-      });
-      texto += `\n`;
-    }
-
-    if (acertos.length > 0) {
-      texto += `⚖️ *Acerto de Contas:*\n`;
-      acertos.forEach(t => {
-        texto += `- ${t.de} ➡️ ${t.para}: ${formatarMoeda(t.valor)}\n`;
-      });
-    } else if (membrosDaViagem.length > 1) {
-      texto += `⚖️ *Acerto de Contas:*\nTudo certo! Ninguém deve a ninguém. 🎉\n`;
-    }
-
-    texto += `\n_(Gerado via ContaViagem ✈️)_`;
-
-    const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
-    window.open(url, '_blank');
-  };
+  const dadosGrafico = Object.entries(dadosExibicao).map(([name, value]) => ({ name, value }));
 
   return (
     <div className="card-viagem">
-      <div className="card-viagem__header">
-        <h2 className="card-viagem__destino">{viagem.destino}</h2>
-        <div className="card-viagem__acoes">
-          <button 
-            className="card-viagem__btn-edit" 
-            onClick={() => onEdit(viagem)}
-            title="Editar Viagem"
-          >
-            ✏️
-          </button>
-          <button 
-            className="card-viagem__btn-delete" 
-            onClick={() => onDelete(viagem.uid)}
-            title="Apagar Viagem"
-          >
-            🗑️
-          </button>
-        </div>
-      </div>
+      <CabecalhoOrcamento 
+        viagem={viagem} totalGasto={totalGasto} orcamentoRestante={orcamentoRestante} 
+        excedido={excedido} corGasto={corGasto} corRestante={corRestante} 
+        onEdit={onEdit} onDelete={onDelete} 
+      />
 
-      <p className="card-viagem__datas">
-        📅 {viagem.data_de_inicio} até {viagem.data_de_fim}
-      </p>
+      <SeccaoMembros 
+        mostrarMembros={mostrarMembros} setMostrarMembros={setMostrarMembros} setMostrarAcertos={setMostrarAcertos}
+        membrosDaViagem={membrosDaViagem} todasDespesasDaViagem={todasDespesasDaViagem} 
+        onDeleteMembro={onDeleteMembro} onAddMembro={onAddMembro} viagemId={viagem.id}
+      />
 
-      <div className="card-viagem__budget-bar">
-        <div className="card-viagem__budget-resumo">
-          <span>Plano: <strong>{formatarMoeda(viagem.orcamento)}</strong></span>
-          <span>
-            Gasto: <strong className="card-viagem__budget-gasto-valor" style={{ '--gasto-color': corGasto }}>{formatarMoeda(totalGasto)}</strong>
-          </span>
-        </div>
-        <div className="card-viagem__budget-restante" style={{ '--restante-color': corRestante }}>
-          {orcamentoRestante < 0 
-            ? `Excedido em ${formatarMoeda(Math.abs(orcamentoRestante))}` 
-            : `Disponível: ${formatarMoeda(orcamentoRestante)}`
-          }
-        </div>
-      </div>
+      <SeccaoAcertos 
+        mostrarAcertos={mostrarAcertos} setMostrarAcertos={setMostrarAcertos} setMostrarMembros={setMostrarMembros}
+        membrosDaViagem={membrosDaViagem} todasDespesasDaViagem={todasDespesasDaViagem} 
+        totalGastoNumerico={totalGastoNumerico} viagem={viagem} onLiquidar={onLiquidar}
+      />
 
-      <div className="card-viagem__membros-container">
-        <button 
-          className="card-viagem__membros-toggle"
-          onClick={() => { setMostrarMembros(!mostrarMembros); setMostrarAcertos(false); }}
-        >
-          <span>👥 Participantes ({membrosDaViagem.length})</span>
-          <span>{mostrarMembros ? '▲' : '▼'}</span>
-        </button>
+      <SeccaoGraficos 
+        dadosGrafico={dadosGrafico} dadosExibicao={dadosExibicao} 
+        tipoGrafico={tipoGrafico} setTipoGrafico={setTipoGrafico}
+      />
 
-        {mostrarMembros && (
-          <div className="card-viagem__membros-content">
-            <div className="card-viagem__membros-lista">
-              {membrosDaViagem.length === 0 && <span className="card-viagem__membro-vazio">Nenhum participante adicionado.</span>}
-              {membrosDaViagem.map(m => {
-                const totalPago = todasDespesasDaViagem
-                  .filter(d => String(d.pago_por_id) === String(m.id))
-                  .reduce((acc, curr) => acc + curr.valor, 0);
-
-                return (
-                  <span key={m.uid} className="card-viagem__membro-badge">
-                    {m.nome}
-                    {totalPago > 0 && (
-                      <span style={{ color: '#16a34a', fontWeight: 'bold', marginLeft: '4px' }}>
-                        ({formatarMoeda(totalPago)})
-                      </span>
-                    )}
-                    <button className="card-viagem__membro-remove" onClick={() => onDeleteMembro(m.uid)} title="Remover">✖</button>
-                  </span>
-                );
-              })}
-            </div>
-            <div className="card-viagem__membros-add">
-              <input 
-                type="text" 
-                className="card-viagem__membros-input"
-                placeholder="Adicionar nome..." 
-                value={novoMembroNome}
-                onChange={e => setNovoMembroNome(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAddMembro()}
-              />
-              <button className="card-viagem__membros-btn" onClick={handleAddMembro}>+</button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="card-viagem__membros-container" style={{ marginTop: '-10px' }}>
-        <button 
-          className="card-viagem__membros-toggle"
-          onClick={() => { setMostrarAcertos(!mostrarAcertos); setMostrarMembros(false); }}
-        >
-          <span>⚖️ Acerto de Contas</span>
-          <span>{mostrarAcertos ? '▲' : '▼'}</span>
-        </button>
-
-        {mostrarAcertos && (
-          <div className="card-viagem__membros-content">
-            {membrosDaViagem.length < 2 ? (
-              <span className="card-viagem__membro-vazio">Adiciona pelo menos 2 participantes para fazer acertos.</span>
-            ) : totalGastoNumerico === 0 ? (
-              <span className="card-viagem__membro-vazio">Ainda não há gastos para dividir.</span>
-            ) : (
-              <>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                  <li style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '10px' }}>
-                    Total a dividir: <strong>{formatarMoeda(totalGastoNumerico)}</strong>
-                  </li>
-                  {acertos.length === 0 ? (
-                    <li className="card-viagem__membro-vazio" style={{ color: '#16a34a', fontWeight: 'bold' }}>Tudo certo! Ninguém deve a ninguém. 🎉</li>
-                  ) : (
-                    acertos.map((t, idx) => (
-                      <li key={idx} style={{ padding: '10px 0', borderBottom: idx === acertos.length - 1 ? 'none' : '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
-                        <span><strong>{t.de}</strong> ➡️ <strong>{t.para}</strong></span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span style={{ color: '#dc2626', fontWeight: 'bold' }}>{formatarMoeda(t.valor)}</span>
-                          <button 
-                            onClick={() => onLiquidar(viagem.id, t.deId, t.paraId, t.valor, t.de, t.para)}
-                            style={{ background: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 10px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
-                            title="Marcar como pago"
-                          >
-                            ✅ Pagar
-                          </button>
-                        </div>
-                      </li>
-                    ))
-                  )}
-                </ul>
-                
-                <button 
-                  onClick={partilharWhatsApp}
-                  style={{ width: '100%', marginTop: '15px', background: '#25D366', color: 'white', border: 'none', padding: '10px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
-                >
-                  📱 Partilhar no WhatsApp
-                </button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-
-      {dadosGrafico.length > 0 && (
-        <>
-          <div className="card-viagem__grafico-toggle">
-            <button 
-              className={`card-viagem__btn-grafico ${tipoGrafico === 'categoria' ? 'ativo' : ''}`}
-              onClick={() => setTipoGrafico('categoria')}
-            >
-              📊 Por Categoria
-            </button>
-            <button 
-              className={`card-viagem__btn-grafico ${tipoGrafico === 'pessoa' ? 'ativo' : ''}`}
-              onClick={() => setTipoGrafico('pessoa')}
-            >
-              👤 Por Pessoa
-            </button>
-          </div>
-
-          <div className="card-viagem__chart-wrapper">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={dadosGrafico}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={75}
-                  paddingAngle={5}
-                  dataKey="value"
-                  animationDuration={600}
-                >
-                  {dadosGrafico.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={CORES_GRAFICO[index % CORES_GRAFICO.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => formatarMoeda(value)} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="card-viagem__metricas">
-            {Object.entries(dadosExibicao).map(([nomeOuCategoria, valor], index) => (
-              <span key={nomeOuCategoria} className="card-viagem__metrica-badge" style={{ '--badge-color': CORES_GRAFICO[index % CORES_GRAFICO.length] }}>
-                {nomeOuCategoria}: {formatarMoeda(valor)}
-              </span>
-            ))}
-          </div>
-        </>
-      )}
-
-      <h4 className="card-viagem__gastos-titulo">Gastos Registados:</h4>
-      <ul className="card-viagem__gastos-lista">
-        {despesasFiltradas.length === 0 ? (
-          <li className="card-viagem__gasto-vazio">Nenhum gasto encontrado para os filtros ativos.</li>
-        ) : (
-          despesasFiltradas.map(d => {
-            const isLiquidacao = d.descricao.startsWith('Liquidação: ');
-            return (
-              <li key={d.uid} className="card-viagem__gasto-item" style={{ opacity: isLiquidacao ? 0.6 : 1 }}>
-                <div>
-                  <span className="card-viagem__gasto-descricao">
-                    {isLiquidacao ? '💸 ' : ''}{d.descricao}
-                  </span>
-                  <small className="card-viagem__gasto-tag">{d.categoria_name || d.categoria_nome}</small>
-                  {d.pago_por_id && !isLiquidacao && (
-                    <small className="card-viagem__gasto-pagador" style={{ display: 'block', color: '#64748b', fontSize: '0.75rem', marginTop: '2px' }}>
-                      Pago por: <strong>{membros.find(m => String(m.id) === String(d.pago_por_id))?.nome || 'Desconhecido'}</strong>
-                      {d.envolvidos_ids && (
-                        <span style={{ fontStyle: 'italic', marginLeft: '4px', color: '#94a3b8' }}>
-                          (apenas para alguns)
-                        </span>
-                      )}
-                    </small>
-                  )}
-                </div>
-                <div className="card-viagem__gasto-acoes">
-                  <span className="card-viagem__gasto-valor" style={{ color: isLiquidacao ? '#16a34a' : '#334155' }}>
-                    {isLiquidacao ? '+' : ''}{formatarMoeda(d.valor)}
-                  </span>
-                  <button 
-                    className="card-viagem__btn-edit" 
-                    onClick={() => onEditDespesa(d)}
-                  >
-                    ✏️
-                  </button>
-                  <button 
-                    className="card-viagem__btn-delete" 
-                    onClick={() => onDeleteDespesa(d.uid)}
-                  >
-                    ✖
-                  </button>
-                </div>
-              </li>
-            );
-          })
-        )}
-      </ul>
+      <SeccaoDespesas 
+        despesasFiltradas={despesasFiltradas} membros={membros} 
+        onEditDespesa={onEditDespesa} onDeleteDespesa={onDeleteDespesa}
+      />
     </div>
   );
 }
