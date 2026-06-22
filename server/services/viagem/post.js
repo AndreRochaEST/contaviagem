@@ -5,6 +5,7 @@ const novoId = _db.insert("viagem", _val.map()
     .set("data_de_inicio", _req.getString("data_de_inicio"))
     .set("data_de_fim", _req.getString("data_de_fim"))
     .set("orcamento", _req.getFloat("orcamento"))
+    .set("etapas", _req.getString("etapas"))
 );
 
 if (novoId) {

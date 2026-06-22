@@ -4,7 +4,16 @@ import { formatarMoeda } from '../../utils';
 const CabecalhoOrcamento = ({ viagem, totalGasto, orcamentoRestante, excedido, corGasto, corRestante, onEdit, onDelete }) => (
   <React.Fragment>
     <div className="card-viagem__header">
-      <h2 className="card-viagem__destino">{viagem.destino}</h2>
+      <div className="card-viagem__titulo-wrapper">
+        <h2 className="card-viagem__destino" style={{ marginBottom: viagem.etapas ? '4px' : '0' }}>
+          {viagem.destino}
+        </h2>
+        {viagem.etapas && (
+          <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+            📍 <strong>Etapas:</strong> {viagem.etapas}
+          </p>
+        )}
+      </div>
       <div className="card-viagem__acoes">
         <button className="card-viagem__btn-edit" onClick={() => onEdit(viagem)} title="Editar Viagem">✏️</button>
         <button className="card-viagem__btn-delete" onClick={() => onDelete(viagem.uid)} title="Apagar Viagem">🗑️</button>

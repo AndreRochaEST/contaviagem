@@ -10,6 +10,7 @@ const SeccaoGraficos = ({ dadosGrafico, dadosExibicao, tipoGrafico, setTipoGrafi
       <div className="card-viagem__grafico-toggle">
         <button className={`card-viagem__btn-grafico ${tipoGrafico === 'categoria' ? 'ativo' : ''}`} onClick={() => setTipoGrafico('categoria')}>📊 Por Categoria</button>
         <button className={`card-viagem__btn-grafico ${tipoGrafico === 'pessoa' ? 'ativo' : ''}`} onClick={() => setTipoGrafico('pessoa')}>👤 Por Pessoa</button>
+        <button className={`card-viagem__btn-grafico ${tipoGrafico === 'etapa' ? 'ativo' : ''}`} onClick={() => setTipoGrafico('etapa')}>📍 Por Etapa</button>
       </div>
       <div className="card-viagem__chart-wrapper">
         <ResponsiveContainer width="100%" height="100%">
@@ -22,9 +23,9 @@ const SeccaoGraficos = ({ dadosGrafico, dadosExibicao, tipoGrafico, setTipoGrafi
         </ResponsiveContainer>
       </div>
       <div className="card-viagem__metricas">
-        {Object.entries(dadosExibicao).map(([nomeOuCategoria, valor], index) => (
-          <span key={nomeOuCategoria} className="card-viagem__metrica-badge" style={{ '--badge-color': CORES_GRAFICO[index % CORES_GRAFICO.length] }}>
-            {nomeOuCategoria}: {formatarMoeda(valor)}
+        {Object.entries(dadosExibicao).map(([nome, valor], index) => (
+          <span key={nome} className="card-viagem__metrica-badge" style={{ '--badge-color': CORES_GRAFICO[index % CORES_GRAFICO.length] }}>
+            {nome}: {formatarMoeda(valor)}
           </span>
         ))}
       </div>

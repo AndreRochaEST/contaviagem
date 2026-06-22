@@ -33,6 +33,7 @@ function DashboardContainer() {
     viagemId: '',
     categoriaId: '',
     membroId: '',
+    etapa: '',
     envolvidosIds: [],
     usarCambio: false,
     moeda: 'GBP',
@@ -43,6 +44,7 @@ function DashboardContainer() {
   const [editViagemUid, setEditViagemUid] = useState(null);
   const [formViagem, setFormViagem] = useState({
     destino: '',
+    etapas: '',
     dataInicio: '',
     dataFim: '',
     orcamento: ''
@@ -68,6 +70,7 @@ function DashboardContainer() {
       viagemId: viagens[0]?.id || '',
       categoriaId: categorias[0]?.id.toString() || '',
       membroId: '',
+      etapa: '',
       envolvidosIds: [],
       usarCambio: false,
       moeda: 'GBP',
@@ -80,6 +83,7 @@ function DashboardContainer() {
     setEditViagemUid(null);
     setFormViagem({
       destino: '',
+      etapas: '',
       dataInicio: '',
       dataFim: '',
       orcamento: ''
@@ -106,6 +110,7 @@ function DashboardContainer() {
       viagemId: d.viagem_id,
       categoriaId: (d.categoria_id || d.categoria_id_selecionada || '').toString(),
       membroId: (d.pago_por_id || '').toString(),
+      etapa: d.etapa || '',
       envolvidosIds: d.envolvidos_ids ? d.envolvidos_ids.split(',').filter(x => x) : [],
       usarCambio: false,
       moeda: 'GBP',
@@ -120,6 +125,7 @@ function DashboardContainer() {
     setEditViagemUid(v.uid);
     setFormViagem({
       destino: v.destino,
+      etapas: v.etapas || '',
       dataInicio: v.data_de_inicio,
       dataFim: v.data_de_fim,
       orcamento: v.orcamento
@@ -175,24 +181,21 @@ function DashboardContainer() {
       descricao: descricaoFinal,
       valor: parseFloat(formDespesa.valor),
       viagem_id: parseInt(formDespesa.viagemId),
-      categoria_id: parseInt(formDespesa.categoriaId)
+      categoria_id: parseInt(formDespesa.categoriaId),
+      pago_por_id: formDespesa.membroId ? parseInt(formDespesa.membroId) : 0,
+      envolvidos_ids: formDespesa.envolvidosIds.join(',')
     };
 
-    if (formDespesa.membroId) {
-      dados.pago_por_id = parseInt(formDespesa.membroId);
+    if (formDespesa.etapa) {
+      dados.etapa = formDespesa.etapa;
     }
-    
-    dados.envolvidos_ids = formDespesa.envolvidosIds.join(',');
 
     if (editDespesaUid) {
       dados.uid = editDespesaUid;
     }
 
     try {
-      const result = editDespesaUid 
-        ? await atualizarDespesa(dados)
-        : await criarDespesa(dados);
-      
+      const result = editDespesaUid ? await atualizarDespesa(dados) : await criarDespesa(dados);
       if (result.sucesso) {
         limparFormDespesa();
         setMostrarFormDespesa(false);
@@ -239,20 +242,16 @@ function DashboardContainer() {
 
     const dados = {
       destino: formViagem.destino,
+      etapas: formViagem.etapas,
       data_de_inicio: formViagem.dataInicio,
       data_de_fim: formViagem.dataFim,
       orcamento: parseFloat(formViagem.orcamento)
     };
 
-    if (editViagemUid) {
-      dados.uid = editViagemUid;
-    }
+    if (editViagemUid) dados.uid = editViagemUid;
 
     try {
-      const result = editViagemUid 
-        ? await atualizarViagem(dados)
-        : await criarViagem(dados);
-      
+      const result = editViagemUid ? await atualizarViagem(dados) : await criarViagem(dados);
       if (result.sucesso) {
         limparFormViagem();
         setMostrarFormViagem(false);
@@ -268,7 +267,6 @@ function DashboardContainer() {
 
   const handleApagarDespesa = async (uid) => {
     if (!window.confirm(CONFIRMACOES.APAGAR_DESPESA)) return;
-
     try {
       const result = await apagarDespesa(uid);
       if (result.sucesso) {
@@ -284,7 +282,6 @@ function DashboardContainer() {
 
   const handleApagarViagem = async (uid) => {
     if (!window.confirm(CONFIRMACOES.APAGAR_VIAGEM)) return;
-
     try {
       const result = await apagarViagem(uid);
       if (result.sucesso) {
@@ -320,12 +317,7 @@ function DashboardContainer() {
   };
 
   const handleAddTarefa = (viagemId, texto) => {
-    const nova = {
-      uid: Math.random().toString(36).substr(2, 9),
-      viagem_id: viagemId,
-      texto,
-      feito: false
-    };
+    const nova = { uid: Math.random().toString(36).substr(2, 9), viagem_id: viagemId, texto, feito: false };
     setTarefas(prev => [...prev, nova]);
   };
 
@@ -336,6 +328,16 @@ function DashboardContainer() {
   const handleDeleteTarefa = (uid) => {
     setTarefas(prev => prev.filter(t => t.uid !== uid));
   };
+
+  const viagemSelecionada = viagens.find(v => v.id === (formDespesa.viagemId ? parseInt(formDespesa.viagemId) : null));
+  
+  let etapasDaViagem = [];
+  if (viagemSelecionada && viagemSelecionada.etapas) {
+    const extraEtapas = viagemSelecionada.etapas.split(',').map(e => e.trim()).filter(e => e !== '');
+    if (extraEtapas.length > 0) {
+      etapasDaViagem = [...new Set([viagemSelecionada.destino, ...extraEtapas])];
+    }
+  }
 
   return (
     <div className="dashboard">
@@ -354,6 +356,7 @@ function DashboardContainer() {
         <FormViagem 
           editando={!!editViagemUid}
           destino={formViagem.destino}
+          etapas={formViagem.etapas}
           dataInicio={formViagem.dataInicio}
           dataFim={formViagem.dataFim}
           orcamento={formViagem.orcamento}
@@ -370,6 +373,7 @@ function DashboardContainer() {
           viagemId={formDespesa.viagemId}
           categoriaId={formDespesa.categoriaId}
           membroId={formDespesa.membroId}
+          etapa={formDespesa.etapa}
           envolvidosIds={formDespesa.envolvidosIds}
           usarCambio={formDespesa.usarCambio}
           moeda={formDespesa.moeda}
@@ -378,6 +382,7 @@ function DashboardContainer() {
           viagens={viagens}
           categorias={categorias}
           membros={membros}
+          etapasDaViagem={etapasDaViagem}
           onChange={handleChangeFormDespesa}
           onSubmit={submeterDespesa}
         />

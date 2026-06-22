@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { calcularOrcamento, filtrarDespesas, agruparDespesasPorCategoria, calcularGastosPorPessoa } from '../../utils';
+import { calcularOrcamento, filtrarDespesas, agruparDespesasPorCategoria, calcularGastosPorPessoa, agruparDespesasPorEtapa } from '../../utils';
 import './index.less';
 
 import CabecalhoOrcamento from './CabecalhoOrcamento';
@@ -33,8 +33,9 @@ function CartaoViagem({
   
   const gastosPorCategoria = agruparDespesasPorCategoria(despesasReais);
   const gastosPorPessoa = calcularGastosPorPessoa(despesasReais, membrosDaViagem);
+  const gastosPorEtapa = agruparDespesasPorEtapa(despesasReais);
 
-  const dadosExibicao = tipoGrafico === 'categoria' ? gastosPorCategoria : gastosPorPessoa;
+  const dadosExibicao = tipoGrafico === 'categoria' ? gastosPorCategoria : tipoGrafico === 'pessoa' ? gastosPorPessoa : gastosPorEtapa;
   const dadosGrafico = Object.entries(dadosExibicao).map(([name, value]) => ({ name, value }));
 
   return (

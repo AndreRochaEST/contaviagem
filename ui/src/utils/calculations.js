@@ -1,32 +1,26 @@
 export const formatarMoeda = (valor) => {
-  return new Intl.NumberFormat('pt-PT', { 
-    style: 'currency', 
-    currency: 'EUR' 
-  }).format(valor);
+  return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(valor || 0);
 };
 
 export const calcularOrcamento = (orcamento, totalGasto) => {
-  return {
-    totalGasto,
-    orcamentoRestante: orcamento - totalGasto,
-    percentualGasto: (totalGasto / orcamento) * 100,
-    excedido: totalGasto > orcamento
-  };
+  const orcamentoRestante = orcamento - totalGasto;
+  const excedido = orcamentoRestante < 0;
+  return { totalGasto, orcamentoRestante, excedido };
 };
 
-export const filtrarDespesas = (despesas, filtroTexto, filtroCategoria) => {
+export const filtrarDespesas = (despesas, texto, categoria) => {
   return despesas.filter(d => {
-    const nomeCat = d.categoria_name || d.categoria_nome || '';
-    const bateTexto = d.descricao.toLowerCase().includes(filtroTexto.toLowerCase());
-    const bateCategoria = filtroCategoria === 'todos' || nomeCat === filtroCategoria;
-    return bateTexto && bateCategoria;
+    const matchTexto = d.descricao.toLowerCase().includes(texto.toLowerCase());
+    const matchCat = categoria === 'todos' || d.categoria_name === categoria || d.categoria_nome === categoria;
+    return matchTexto && matchCat;
   });
 };
 
-export const agruparDespesasPorCategoria = (despesas) => {
-  return despesas.reduce((acc, d) => {
-    const cat = d.categoria_name || d.categoria_nome;
-    acc[cat] = (acc[cat] || 0) + d.valor;
+export const agruparDespesasPorCategoria = (despesasReais) => {
+  return despesasReais.reduce((acc, d) => {
+    const cat = d.categoria_name || d.categoria_nome || 'Sem Categoria';
+    if (!acc[cat]) acc[cat] = 0;
+    acc[cat] += d.valor;
     return acc;
   }, {});
 };
@@ -37,6 +31,15 @@ export const calcularGastosPorPessoa = (despesasReais, membrosDaViagem) => {
     const nome = pagador ? pagador.nome : 'Sem atribuição';
     if (!acc[nome]) acc[nome] = 0;
     acc[nome] += d.valor;
+    return acc;
+  }, {});
+};
+
+export const agruparDespesasPorEtapa = (despesasReais) => {
+  return despesasReais.reduce((acc, d) => {
+    const etapa = d.etapa || 'Geral (Sem Etapa)';
+    if (!acc[etapa]) acc[etapa] = 0;
+    acc[etapa] += d.valor;
     return acc;
   }, {});
 };

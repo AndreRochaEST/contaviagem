@@ -240,3 +240,12 @@ SELECT
 	at org.eclipse.jetty.util.thread.QueuedThreadPool$Runner.doRunJob(QueuedThreadPool.java:1239)
 	at org.eclipse.jetty.util.thread.QueuedThreadPool$Runner.run(QueuedThreadPool.java:1194)
 	at java.base/java.lang.Thread.run(Thread.java:1474)
+2026-06-22 14:17:57.218561+01:00 jdbc[18]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "-1"; SQL statement:
+select * from `membro` where uid = '-1' [22018-240]
+2026-06-22 14:18:01.813896+01:00 jdbc[21]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "-1"; SQL statement:
+select * from `membro` where uid = '-1' [22018-240]
+2026-06-22 14:18:09.541866+01:00 jdbc[23]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "-1"; SQL statement:
+select * from `membro` where uid = '-1' [22018-240]
