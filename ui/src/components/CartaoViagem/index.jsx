@@ -7,17 +7,21 @@ import SeccaoMembros from './SeccaoMembros';
 import SeccaoAcertos from './SeccaoAcertos';
 import SeccaoGraficos from './SeccaoGraficos';
 import SeccaoDespesas from './SeccaoDespesas';
+import SeccaoChecklist from './SeccaoChecklist';
 
 function CartaoViagem({ 
-  viagem, despesas, membros = [], filtroTexto, filtroCategoria,
-  onEdit, onDelete, onEditDespesa, onDeleteDespesa, onAddMembro, onDeleteMembro, onLiquidar
+  viagem, despesas, membros = [], tarefas = [], filtroTexto, filtroCategoria,
+  onEdit, onDelete, onEditDespesa, onDeleteDespesa, onAddMembro, onDeleteMembro, onLiquidar,
+  onAddTarefa, onToggleTarefa, onDeleteTarefa
 }) {
   const [mostrarMembros, setMostrarMembros] = useState(false);
   const [mostrarAcertos, setMostrarAcertos] = useState(false);
+  const [mostrarChecklist, setMostrarChecklist] = useState(false);
   const [tipoGrafico, setTipoGrafico] = useState('categoria');
 
   const todasDespesasDaViagem = despesas.filter(d => d.viagem_id === viagem.id);
   const membrosDaViagem = membros.filter(m => m.viagem_id === viagem.id);
+  const tarefasDaViagem = tarefas.filter(t => t.viagem_id === viagem.id);
   const despesasReais = todasDespesasDaViagem.filter(d => !d.descricao.startsWith('Liquidação: '));
   
   const totalGastoNumerico = despesasReais.reduce((acc, d) => acc + d.valor, 0);
@@ -47,6 +51,13 @@ function CartaoViagem({
         onDeleteMembro={onDeleteMembro} onAddMembro={onAddMembro} viagemId={viagem.id}
       />
 
+      <SeccaoChecklist 
+        mostrarChecklist={mostrarChecklist} setMostrarChecklist={setMostrarChecklist}
+        setMostrarMembros={setMostrarMembros} setMostrarAcertos={setMostrarAcertos}
+        tarefasDaViagem={tarefasDaViagem} onAddTarefa={onAddTarefa}
+        onToggleTarefa={onToggleTarefa} onDeleteTarefa={onDeleteTarefa} viagemId={viagem.id}
+      />
+
       <SeccaoAcertos 
         mostrarAcertos={mostrarAcertos} setMostrarAcertos={setMostrarAcertos} setMostrarMembros={setMostrarMembros}
         membrosDaViagem={membrosDaViagem} todasDespesasDaViagem={todasDespesasDaViagem} 
@@ -59,7 +70,7 @@ function CartaoViagem({
       />
 
       <SeccaoDespesas 
-        despesasFiltradas={despesasFiltradas} membros={membros}
+        despesasFiltradas={despesasFiltradas} membros={membros} 
         onEditDespesa={onEditDespesa} onDeleteDespesa={onDeleteDespesa}
       />
     </div>

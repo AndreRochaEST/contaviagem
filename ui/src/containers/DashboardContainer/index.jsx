@@ -25,6 +25,7 @@ function DashboardContainer() {
   const [filtroCategoria, setFiltroCategoria] = useState('todos');
 
   const [editDespesaUid, setEditDespesaUid] = useState(null);
+  const [tarefas, setTarefas] = useState([]);
   
   const [formDespesa, setFormDespesa] = useState({
     descricao: '',
@@ -143,8 +144,8 @@ function DashboardContainer() {
     });
 
     if ((field === 'moeda' && formDespesa.usarCambio) || (field === 'usarCambio' && value === true)) {
-      const moedaConsulta = field === 'moeda' ? value : formDespesa.moeda;
-      fetch(`https://open.er-api.com/v6/latest/${moedaConsulta}`)
+      const exchangeBase = field === 'moeda' ? value : formDespesa.moeda;
+      fetch(`https://open.er-api.com/v6/latest/${exchangeBase}`)
         .then(res => res.json())
         .then(data => {
           if (data && data.rates && data.rates.EUR) {
@@ -318,6 +319,24 @@ function DashboardContainer() {
     }
   };
 
+  const handleAddTarefa = (viagemId, texto) => {
+    const nova = {
+      uid: Math.random().toString(36).substr(2, 9),
+      viagem_id: viagemId,
+      texto,
+      feito: false
+    };
+    setTarefas(prev => [...prev, nova]);
+  };
+
+  const handleToggleTarefa = (uid, feito) => {
+    setTarefas(prev => prev.map(t => t.uid === uid ? { ...t, feito } : t));
+  };
+
+  const handleDeleteTarefa = (uid) => {
+    setTarefas(prev => prev.filter(t => t.uid !== uid));
+  };
+
   return (
     <div className="dashboard">
       <h1 className="dashboard__title">Dashboard ContaViagem ✈️</h1>
@@ -379,6 +398,7 @@ function DashboardContainer() {
             viagem={viagem}
             despesas={despesas}
             membros={membros}
+            tarefas={tarefas}
             filtroTexto={filtroTexto}
             filtroCategoria={filtroCategoria}
             onEdit={iniciarEdicaoViagem}
@@ -388,6 +408,9 @@ function DashboardContainer() {
             onAddMembro={handleAddMembro}
             onDeleteMembro={handleDeleteMembro}
             onLiquidar={handleLiquidar}
+            onAddTarefa={handleAddTarefa}
+            onToggleTarefa={handleToggleTarefa}
+            onDeleteTarefa={handleDeleteTarefa}
           />
         ))}
       </div>
