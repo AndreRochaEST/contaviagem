@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { callService } from '../utils';
 
-export function useTarefa() {
+export function useTarefa(viagemId) {
   const [tarefas, setTarefas] = useState([]);
 
   const carregarTarefas = useCallback(async () => {
-    const result = await callService({ url: '/tarefa', method: 'GET' });
+    if (!viagemId) return;
+    const result = await callService({ url: `/tarefa?viagem_id=${viagemId}`, method: 'GET' });
     if (result && result.sucesso) {
       setTarefas(result.data || []);
     }
-  }, []);
+  }, [viagemId]);
 
   useEffect(() => {
     carregarTarefas();

@@ -8,7 +8,7 @@ import CartaoViagem from '../../components/CartaoViagem';
 import FiltrosDashboard from '../../components/FiltrosDashboard';
 import AcoesDashboard from '../../components/AcoesDashboard';
 
-import { useViagem, useDespesa, useCategoria, useToast, useMembro, useTarefa } from '../../hooks';
+import { useViagem, useDespesa, useCategoria, useToast, useMembro } from '../../hooks';
 import { MENSAGENS, CONFIRMACOES } from '../../utils';
 
 function DashboardContainer() {
@@ -25,7 +25,6 @@ function DashboardContainer() {
   const [filtroCategoria, setFiltroCategoria] = useState('todos');
 
   const [editDespesaUid, setEditDespesaUid] = useState(null);
-  const { tarefas, carregarTarefas, criarTarefa, atualizarTarefa, apagarTarefa } = useTarefa();
   
   const [formDespesa, setFormDespesa] = useState({
     descricao: '',
@@ -316,33 +315,6 @@ function DashboardContainer() {
     }
   };
 
-  const handleAddTarefa = async (viagemId, texto) => {
-    const result = await criarTarefa({ viagem_id: parseInt(viagemId), texto, feito: false });
-    if (result.sucesso) {
-      if (typeof carregarTarefas === 'function') carregarTarefas();
-    } else {
-      mostrarErro(MENSAGENS.ERRO_SERVIDOR);
-    }
-  };
-
-  const handleToggleTarefa = async (uid, feito) => {
-    const result = await atualizarTarefa({ uid, feito });
-    if (result.sucesso) {
-      if (typeof carregarTarefas === 'function') carregarTarefas();
-    } else {
-      mostrarErro(MENSAGENS.ERRO_SERVIDOR);
-    }
-  };
-
-  const handleDeleteTarefa = async (uid) => {
-    const result = await apagarTarefa(uid);
-    if (result.sucesso) {
-      if (typeof carregarTarefas === 'function') carregarTarefas();
-    } else {
-      mostrarErro(MENSAGENS.ERRO_SERVIDOR);
-    }
-  };
-
   const viagemSelecionada = viagens.find(v => v.id === (formDespesa.viagemId ? parseInt(formDespesa.viagemId) : null));
   
   let etapasDaViagem = [];
@@ -417,7 +389,6 @@ function DashboardContainer() {
             viagem={viagem}
             despesas={despesas}
             membros={membros}
-            tarefas={tarefas}
             filtroTexto={filtroTexto}
             filtroCategoria={filtroCategoria}
             onEdit={iniciarEdicaoViagem}
@@ -427,9 +398,6 @@ function DashboardContainer() {
             onAddMembro={handleAddMembro}
             onDeleteMembro={handleDeleteMembro}
             onLiquidar={handleLiquidar}
-            onAddTarefa={handleAddTarefa}
-            onToggleTarefa={handleToggleTarefa}
-            onDeleteTarefa={handleDeleteTarefa}
           />
         ))}
       </div>

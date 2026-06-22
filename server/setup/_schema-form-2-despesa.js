@@ -168,7 +168,7 @@ _form.createComponentIfNotExists(
 	.set("rowspan", 0)
 	.set("tdheight", 0)
 	.set("tdwidth", 0)
-	.set("title", "pago por")
+	.set("title", "Pago por")
 	.set("type", "select")
 	.set("uid", "a1f4c3b4-9796-4945-b10f-edf0d8500c87")
 	.set("unique", false)

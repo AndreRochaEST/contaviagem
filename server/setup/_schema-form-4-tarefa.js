@@ -57,7 +57,7 @@ _form.createComponentIfNotExists(
 	.set("whenview", true)
 	.set("width", 0)
 	.set("x", 1)
-	.set("y", 2)
+	.set("y", 3)
 )
 _form.createComponentIfNotExists(
 	"94e067c7-9d3e-4051-83f9-ef05dbaf539c",
@@ -75,7 +75,7 @@ _form.createComponentIfNotExists(
 	.set("rowspan", 0)
 	.set("tdheight", 0)
 	.set("tdwidth", 0)
-	.set("title", "texto")
+	.set("title", "Texto")
 	.set("type", "text")
 	.set("uid", "a8842d64-07bb-4428-a597-b04fbff84231")
 	.set("unique", false)
@@ -106,7 +106,7 @@ _form.createComponentIfNotExists(
 	.set("rowspan", 0)
 	.set("tdheight", 0)
 	.set("tdwidth", 0)
-	.set("title", "Viagem_id")
+	.set("title", "Viagem")
 	.set("type", "select")
 	.set("uid", "055c9b12-cfbd-46c3-8aaf-9616511ec6c7")
 	.set("unique", false)

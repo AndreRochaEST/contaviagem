@@ -8,7 +8,7 @@ function FiltrosDashboard({ filtroTexto, onFiltroTextoChange, filtroCategoria, o
         <input 
           type="text" 
           value={filtroTexto} 
-          onChange={e => onFiltroTextoChange(e.target.value)} 
+          onChange={e => onFiltroTextoChange && onFiltroTextoChange(e.target.value)} 
           placeholder="Ex: Café, Comboio, Hotel..." 
           className="dashboard__filter-input"
         />
@@ -17,7 +17,7 @@ function FiltrosDashboard({ filtroTexto, onFiltroTextoChange, filtroCategoria, o
         <label className="dashboard__filter-label">📁 Categoria</label>
         <select 
           value={filtroCategoria} 
-          onChange={e => onFiltroCategoriaChange(e.target.value)} 
+          onChange={e => onFiltroCategoriaChange && onFiltroCategoriaChange(e.target.value)} 
           className="dashboard__filter-input"
         >
           <option value="todos">Todas as Categorias</option>

@@ -55,8 +55,7 @@ function CartaoViagem({
       <SeccaoChecklist 
         mostrarChecklist={mostrarChecklist} setMostrarChecklist={setMostrarChecklist}
         setMostrarMembros={setMostrarMembros} setMostrarAcertos={setMostrarAcertos}
-        tarefasDaViagem={tarefasDaViagem} onAddTarefa={onAddTarefa}
-        onToggleTarefa={onToggleTarefa} onDeleteTarefa={onDeleteTarefa} viagemId={viagem.id}
+        viagemId={viagem.id} 
       />
 
       <SeccaoAcertos 
