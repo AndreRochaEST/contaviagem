@@ -137,7 +137,7 @@ _form.createComponentIfNotExists(
 	.set("rowspan", 0)
 	.set("tdheight", 0)
 	.set("tdwidth", 0)
-	.set("title", "etapas")
+	.set("title", "Etapas")
 	.set("type", "text")
 	.set("uid", "1b758033-7a86-4832-bd46-3f59f91aae06")
 	.set("unique", false)
