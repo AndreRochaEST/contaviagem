@@ -15,9 +15,11 @@
     "@netuno/service-client": "^1.2.1",
     "@netuno/ws-client": "^1.1.0",
     "antd": "^6.1.1",
+    "leaflet": "^1.9.4",
     "less": "4.5.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "react-leaflet": "^5.0.0",
     "recharts": "^3.8.1",
     "ui": "file:"
   },

@@ -9,6 +9,7 @@ import SeccaoGraficos from './SeccaoGraficos';
 import SeccaoDespesas from './SeccaoDespesas';
 import SeccaoChecklist from './SeccaoChecklist';
 import SeccaoItinerario from './SeccaoItinerario';
+import SeccaoMapa from './SeccaoMapa';
 
 function CartaoViagem({ 
   viagem, despesas, membros = [], categorias = [], tarefas = [], filtroTexto, filtroCategoria,
@@ -19,6 +20,7 @@ function CartaoViagem({
   const [mostrarAcertos, setMostrarAcertos] = useState(false);
   const [mostrarChecklist, setMostrarChecklist] = useState(false);
   const [mostrarItinerario, setMostrarItinerario] = useState(false);
+  const [mostrarMapa, setMostrarMapa] = useState(false);
   const [tipoGrafico, setTipoGrafico] = useState('categoria');
 
   const todasDespesasDaViagem = despesas.filter(d => d.viagem_id === viagem.id);
@@ -50,7 +52,7 @@ function CartaoViagem({
       <SeccaoMembros 
         mostrarMembros={mostrarMembros} setMostrarMembros={setMostrarMembros} 
         setMostrarAcertos={setMostrarAcertos} setMostrarChecklist={setMostrarChecklist}
-        setMostrarItinerario={setMostrarItinerario}
+        setMostrarItinerario={setMostrarItinerario} setMostrarMapa={setMostrarMapa}
         membrosDaViagem={membrosDaViagem} todasDespesasDaViagem={todasDespesasDaViagem} 
         onDeleteMembro={onDeleteMembro} onAddMembro={onAddMembro} viagemId={viagem.id}
       />
@@ -58,19 +60,28 @@ function CartaoViagem({
       <SeccaoItinerario
         mostrarItinerario={mostrarItinerario} setMostrarItinerario={setMostrarItinerario}
         setMostrarMembros={setMostrarMembros} setMostrarAcertos={setMostrarAcertos}
-        setMostrarChecklist={setMostrarChecklist} viagemId={viagem.id}
+        setMostrarChecklist={setMostrarChecklist} setMostrarMapa={setMostrarMapa}
+        viagemId={viagem.id}
+      />
+
+      <SeccaoMapa
+        mostrarMapa={mostrarMapa} setMostrarMapa={setMostrarMapa}
+        setMostrarMembros={setMostrarMembros} setMostrarAcertos={setMostrarAcertos}
+        setMostrarChecklist={setMostrarChecklist} setMostrarItinerario={setMostrarItinerario}
+        viagem={viagem}
       />
 
       <SeccaoChecklist 
         mostrarChecklist={mostrarChecklist} setMostrarChecklist={setMostrarChecklist}
         setMostrarMembros={setMostrarMembros} setMostrarAcertos={setMostrarAcertos}
-        setMostrarItinerario={setMostrarItinerario} viagemId={viagem.id} 
+        setMostrarItinerario={setMostrarItinerario} setMostrarMapa={setMostrarMapa}
+        viagemId={viagem.id} 
       />
 
       <SeccaoAcertos 
         mostrarAcertos={mostrarAcertos} setMostrarAcertos={setMostrarAcertos} 
         setMostrarMembros={setMostrarMembros} setMostrarChecklist={setMostrarChecklist}
-        setMostrarItinerario={setMostrarItinerario}
+        setMostrarItinerario={setMostrarItinerario} setMostrarMapa={setMostrarMapa}
         membrosDaViagem={membrosDaViagem} todasDespesasDaViagem={todasDespesasDaViagem} 
         totalGastoNumerico={totalGastoNumerico} viagem={viagem} onLiquidar={onLiquidar}
       />
