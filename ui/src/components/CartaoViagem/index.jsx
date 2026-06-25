@@ -61,7 +61,7 @@ function CartaoViagem({
         mostrarItinerario={mostrarItinerario} setMostrarItinerario={setMostrarItinerario}
         setMostrarMembros={setMostrarMembros} setMostrarAcertos={setMostrarAcertos}
         setMostrarChecklist={setMostrarChecklist} setMostrarMapa={setMostrarMapa}
-        viagemId={viagem.id}
+        viagem={viagem}
       />
 
       <SeccaoMapa

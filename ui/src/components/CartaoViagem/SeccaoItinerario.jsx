@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
-import { useItinerario, useToast } from '../../hooks';
+import { useItinerario, useClima, useToast } from '../../hooks';
 import { MENSAGENS } from '../../utils';
 
-const SeccaoItinerario = ({ mostrarItinerario, setMostrarItinerario, setMostrarMembros, setMostrarAcertos, setMostrarChecklist, viagemId }) => {
+const SeccaoItinerario = ({ mostrarItinerario, setMostrarItinerario, setMostrarMembros, setMostrarAcertos, setMostrarChecklist, setMostrarMapa, viagem }) => {
   const [data, setData] = useState('');
   const [hora, setHora] = useState('');
   const [local, setLocal] = useState('');
   const [notas, setNotas] = useState('');
 
+  const viagemId = viagem ? viagem.id : null;
+  const destino = viagem ? viagem.destino : null;
+
   const { itinerarios, criarItinerario, apagarItinerario, carregarItinerarios } = useItinerario(viagemId);
+  const { clima } = useClima(destino, mostrarItinerario);
   const { mostrarErro } = useToast();
 
   const handleAdd = async () => {
-    if (!data || !hora || !local) return;
+    if (!data || !hora || !local || !viagemId) return;
     const result = await criarItinerario({
       viagem_id: parseInt(viagemId),
       data: data,
@@ -70,6 +74,7 @@ const SeccaoItinerario = ({ mostrarItinerario, setMostrarItinerario, setMostrarM
           setMostrarMembros(false);
           setMostrarAcertos(false);
           setMostrarChecklist(false);
+          setMostrarMapa(false);
         }}
       >
         <span>📍 Itinerário ({itinerarios.length})</span>
@@ -83,10 +88,15 @@ const SeccaoItinerario = ({ mostrarItinerario, setMostrarItinerario, setMostrarM
             
             {Object.entries(itinerariosAgrupados).map(([dataStr, itens], index) => (
               <div key={dataStr} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ paddingBottom: '4px', borderBottom: '2px solid #e2e8f0', marginTop: index > 0 ? '8px' : '0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '4px', borderBottom: '2px solid #e2e8f0', marginTop: index > 0 ? '8px' : '0' }}>
                   <span style={{ fontWeight: 'bold', color: '#475569', fontSize: '0.95rem' }}>
                     {dataStr === 'Sem data' ? '📌 Sem data definida' : `📅 ${dataStr}`}
                   </span>
+                  {clima[dataStr] && (
+                    <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {clima[dataStr].icone} {Math.round(clima[dataStr].max)}° / {Math.round(clima[dataStr].min)}°
+                    </span>
+                  )}
                 </div>
                 
                 {itens.map(i => (
