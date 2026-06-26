@@ -1,8 +1,6 @@
 var uid = _req.getString("uid");
 
-_db.update("documento", uid, _val.map()
-    .set("active", 0)
-);
+_db.execute("DELETE FROM documento WHERE uid = ?", uid);
 
 _out.json(
     _val.map()
