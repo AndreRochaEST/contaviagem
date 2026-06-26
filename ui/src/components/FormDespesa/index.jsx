@@ -3,9 +3,57 @@ import './index.less';
 import SeccaoCambio from './SeccaoCambio';
 import SeccaoEnvolvidos from './SeccaoEnvolvidos';
 
+const SeccaoDivisaoExata = ({ membrosDaViagem, divisaoExata = {}, onChange, valorTotal }) => {
+  const handleValorChange = (membroId, valorDigitado) => {
+    const novaDivisao = { ...divisaoExata };
+    if (valorDigitado === '' || parseFloat(valorDigitado) === 0) {
+      delete novaDivisao[membroId];
+    } else {
+      novaDivisao[membroId] = parseFloat(valorDigitado);
+    }
+    onChange('divisaoExata', novaDivisao);
+  };
+
+  const somaAtual = Object.values(divisaoExata).reduce((acc, val) => acc + (val || 0), 0);
+  const diferenca = parseFloat(valorTotal || 0) - somaAtual;
+  const saldoCorreto = Math.abs(diferenca) < 0.01;
+
+  return (
+    <div className="form-despesa__divisao-exata" style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '10px' }}>
+      <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#334155' }}>Valores Consumidos por Pessoa</h4>
+      
+      {membrosDaViagem.map(m => (
+        <div key={m.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <span style={{ fontSize: '0.9rem', color: '#475569' }}>{m.nome}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              style={{ width: '80px', padding: '4px 8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+              placeholder="0.00"
+              value={divisaoExata[m.id] || ''}
+              onChange={(e) => handleValorChange(m.id, e.target.value)}
+            />
+            <span style={{ color: '#64748b', fontSize: '0.9rem' }}>€</span>
+          </div>
+        </div>
+      ))}
+      
+      <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #cbd5e1', display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+        <span style={{ fontWeight: '600', color: '#334155' }}>Total: {somaAtual.toFixed(2)}€</span>
+        <span style={{ fontWeight: '700', color: saldoCorreto ? '#16a34a' : '#dc2626' }}>
+          {saldoCorreto ? '✓ Fechado' : `Falta: ${diferenca.toFixed(2)}€`}
+        </span>
+      </div>
+    </div>
+  );
+};
+
 function FormDespesa({ 
   editando, descricao, valor, viagemId, categoriaId, membroId, etapa, envolvidosIds = [],
   usarCambio, moeda, valorEstrangeiro, taxaCambio,
+  usarDivisaoExata, divisaoExata,
   viagens, categorias, membros, etapasDaViagem,
   onChange, onSubmit 
 }) {
@@ -65,7 +113,20 @@ function FormDespesa({
           </select>
         </div>
 
-        <SeccaoEnvolvidos membrosDaViagem={membrosDaViagem} envolvidosIds={envolvidosIds} onChange={onChange} />
+        <div style={{ gridColumn: '1 / -1', marginTop: '8px' }}>
+          <div style={{ marginBottom: '10px' }}>
+            <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#1e293b', fontWeight: '500' }}>
+              <input type="checkbox" checked={usarDivisaoExata || false} onChange={e => onChange('usarDivisaoExata', e.target.checked)} />
+              ⚖️ Divisão Assimétrica (Valores exatos)
+            </label>
+          </div>
+
+          {usarDivisaoExata ? (
+            <SeccaoDivisaoExata membrosDaViagem={membrosDaViagem} divisaoExata={divisaoExata} valorTotal={valor} onChange={onChange} />
+          ) : (
+            <SeccaoEnvolvidos membrosDaViagem={membrosDaViagem} envolvidosIds={envolvidosIds} onChange={onChange} />
+          )}
+        </div>
 
         <button type="button" onClick={onSubmit} className="form-despesa__submit" style={{ '--btn-bg': editando ? '#f59e0b' : '#2563eb' }}>
           {editando ? 'Atualizar' : 'Gravar Gasto'}

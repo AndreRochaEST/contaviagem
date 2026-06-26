@@ -10,15 +10,20 @@ const SeccaoDespesas = ({ despesasFiltradas, membros, onEditDespesa, onDeleteDes
       ) : (
         despesasFiltradas.map(d => {
           const isLiquidacao = d.descricao.startsWith('Liquidação: ');
+          const isDivisaoExata = !!d.divisao_exata;
+          
           return (
             <li key={d.uid} className="card-viagem__gasto-item" style={{ opacity: isLiquidacao ? 0.6 : 1 }}>
               <div>
-                <span className="card-viagem__gasto-descricao">{isLiquidacao ? '💸 ' : ''}{d.descricao}</span>
+                <span className="card-viagem__gasto-descricao">
+                  {isLiquidacao ? '💸 ' : ''}{d.descricao}
+                  {isDivisaoExata && !isLiquidacao && <span title="Divisão Assimétrica Exata" style={{ marginLeft: '6px', fontSize: '0.85rem' }}>⚖️</span>}
+                </span>
                 <small className="card-viagem__gasto-tag">{d.categoria_name || d.categoria_nome}</small>
                 {d.pago_por_id && !isLiquidacao && (
                   <small className="card-viagem__gasto-pagador" style={{ display: 'block', color: '#64748b', fontSize: '0.75rem', marginTop: '2px' }}>
                     Pago por: <strong>{membros.find(m => String(m.id) === String(d.pago_por_id))?.nome || 'Desconhecido'}</strong>
-                    {d.envolvidos_ids && <span style={{ fontStyle: 'italic', marginLeft: '4px', color: '#94a3b8' }}>(apenas para alguns)</span>}
+                    {!isDivisaoExata && d.envolvidos_ids && <span style={{ fontStyle: 'italic', marginLeft: '4px', color: '#94a3b8' }}>(apenas para alguns)</span>}
                   </small>
                 )}
               </div>

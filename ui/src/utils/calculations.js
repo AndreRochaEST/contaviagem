@@ -50,18 +50,39 @@ export const calcularTransacoesAcerto = (membrosDaViagem, todasDespesasDaViagem)
 
   todasDespesasDaViagem.forEach(d => {
     const valor = d.valor;
-    let envolvidosIds = (d.envolvidos_ids || "").split(',').filter(id => id.trim() !== "");
-    if (envolvidosIds.length === 0) envolvidosIds = membrosDaViagem.map(m => String(m.id));
-    const quotaPorPessoa = valor / envolvidosIds.length;
-
+    
     if (d.pago_por_id) {
       const pagador = saldosArray.find(s => s.id === String(d.pago_por_id));
       if (pagador) pagador.saldo += valor;
     }
-    envolvidosIds.forEach(envId => {
-      const envolvido = saldosArray.find(s => s.id === String(envId));
-      if (envolvido) envolvido.saldo -= quotaPorPessoa;
-    });
+
+    let usouDivisaoExata = false;
+    
+    if (d.divisao_exata) {
+      try {
+        const divisoes = JSON.parse(d.divisao_exata);
+        if (Object.keys(divisoes).length > 0) {
+          usouDivisaoExata = true;
+          Object.entries(divisoes).forEach(([membroId, valorGasto]) => {
+            const envolvido = saldosArray.find(s => s.id === String(membroId));
+            if (envolvido) envolvido.saldo -= parseFloat(valorGasto);
+          });
+        }
+      } catch (e) {
+        usouDivisaoExata = false;
+      }
+    }
+
+    if (!usouDivisaoExata) {
+      let envolvidosIds = (d.envolvidos_ids || "").split(',').filter(id => id.trim() !== "");
+      if (envolvidosIds.length === 0) envolvidosIds = membrosDaViagem.map(m => String(m.id));
+      const quotaPorPessoa = valor / envolvidosIds.length;
+
+      envolvidosIds.forEach(envId => {
+        const envolvido = saldosArray.find(s => s.id === String(envId));
+        if (envolvido) envolvido.saldo -= quotaPorPessoa;
+      });
+    }
   });
 
   let devedores = saldosArray.filter(s => s.saldo < -0.01).map(s => ({ ...s, saldo: Math.abs(s.saldo) }));

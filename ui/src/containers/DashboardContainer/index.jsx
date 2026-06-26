@@ -37,7 +37,9 @@ function DashboardContainer() {
     usarCambio: false,
     moeda: 'GBP',
     valorEstrangeiro: '',
-    taxaCambio: ''
+    taxaCambio: '',
+    usarDivisaoExata: false,
+    divisaoExata: {}
   });
 
   const [editViagemUid, setEditViagemUid] = useState(null);
@@ -74,7 +76,9 @@ function DashboardContainer() {
       usarCambio: false,
       moeda: 'GBP',
       valorEstrangeiro: '',
-      taxaCambio: ''
+      taxaCambio: '',
+      usarDivisaoExata: false,
+      divisaoExata: {}
     });
   };
 
@@ -103,6 +107,16 @@ function DashboardContainer() {
 
   const iniciarEdicaoDespesa = (d) => {
     setEditDespesaUid(d.uid);
+    
+    let divisaoParsed = {};
+    let usarDivisao = false;
+    if (d.divisao_exata) {
+      try {
+        divisaoParsed = JSON.parse(d.divisao_exata);
+        usarDivisao = Object.keys(divisaoParsed).length > 0;
+      } catch (e) {}
+    }
+
     setFormDespesa({
       descricao: d.descricao,
       valor: d.valor,
@@ -114,7 +128,9 @@ function DashboardContainer() {
       usarCambio: false,
       moeda: 'GBP',
       valorEstrangeiro: '',
-      taxaCambio: ''
+      taxaCambio: '',
+      usarDivisaoExata: usarDivisao,
+      divisaoExata: divisaoParsed
     });
     setMostrarFormDespesa(true);
     setMostrarFormViagem(false);
@@ -182,7 +198,8 @@ function DashboardContainer() {
       viagem_id: parseInt(formDespesa.viagemId),
       categoria_id: parseInt(formDespesa.categoriaId),
       pago_por_id: formDespesa.membroId ? parseInt(formDespesa.membroId) : 0,
-      envolvidos_ids: formDespesa.envolvidosIds.join(',')
+      envolvidos_ids: formDespesa.envolvidosIds.join(','),
+      divisao_exata: formDespesa.usarDivisaoExata ? JSON.stringify(formDespesa.divisaoExata) : ""
     };
 
     if (formDespesa.etapa) {
@@ -365,6 +382,8 @@ function DashboardContainer() {
           moeda={formDespesa.moeda}
           valorEstrangeiro={formDespesa.valorEstrangeiro}
           taxaCambio={formDespesa.taxaCambio}
+          usarDivisaoExata={formDespesa.usarDivisaoExata}
+          divisaoExata={formDespesa.divisaoExata}
           viagens={viagens}
           categorias={categorias}
           membros={membros}
