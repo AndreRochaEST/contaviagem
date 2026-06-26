@@ -11,6 +11,7 @@ import SeccaoChecklist from './SeccaoChecklist';
 import SeccaoItinerario from './SeccaoItinerario';
 import SeccaoMapa from './SeccaoMapa';
 import SeccaoCofre from './SeccaoCofre';
+import SeccaoTransportes from './SeccaoTransportes';
 
 function CartaoViagem({ 
   viagem, despesas, membros = [], categorias = [], tarefas = [], filtroTexto, filtroCategoria,
@@ -23,6 +24,7 @@ function CartaoViagem({
   const [mostrarItinerario, setMostrarItinerario] = useState(false);
   const [mostrarMapa, setMostrarMapa] = useState(false);
   const [mostrarCofre, setMostrarCofre] = useState(false);
+  const [mostrarTransportes, setMostrarTransportes] = useState(false);
   const [tipoGrafico, setTipoGrafico] = useState('categoria');
 
   const todasDespesasDaViagem = despesas.filter(d => d.viagem_id === viagem.id);
@@ -55,7 +57,7 @@ function CartaoViagem({
         mostrarMembros={mostrarMembros} setMostrarMembros={setMostrarMembros} 
         setMostrarAcertos={setMostrarAcertos} setMostrarChecklist={setMostrarChecklist}
         setMostrarItinerario={setMostrarItinerario} setMostrarMapa={setMostrarMapa}
-        setMostrarCofre={setMostrarCofre}
+        setMostrarCofre={setMostrarCofre} setMostrarTransportes={setMostrarTransportes}
         membrosDaViagem={membrosDaViagem} todasDespesasDaViagem={todasDespesasDaViagem} 
         onDeleteMembro={onDeleteMembro} onAddMembro={onAddMembro} viagemId={viagem.id}
       />
@@ -64,35 +66,47 @@ function CartaoViagem({
         mostrarCofre={mostrarCofre} setMostrarCofre={setMostrarCofre}
         setMostrarMembros={setMostrarMembros} setMostrarAcertos={setMostrarAcertos}
         setMostrarChecklist={setMostrarChecklist} setMostrarItinerario={setMostrarItinerario}
-        setMostrarMapa={setMostrarMapa} viagemId={viagem.id}
+        setMostrarMapa={setMostrarMapa} setMostrarTransportes={setMostrarTransportes}
+        viagemId={viagem.id}
+      />
+
+      <SeccaoTransportes
+        mostrarTransportes={mostrarTransportes} setMostrarTransportes={setMostrarTransportes}
+        setMostrarMembros={setMostrarMembros} setMostrarAcertos={setMostrarAcertos}
+        setMostrarChecklist={setMostrarChecklist} setMostrarItinerario={setMostrarItinerario}
+        setMostrarMapa={setMostrarMapa} setMostrarCofre={setMostrarCofre}
+        viagemId={viagem.id}
       />
 
       <SeccaoItinerario
         mostrarItinerario={mostrarItinerario} setMostrarItinerario={setMostrarItinerario}
         setMostrarMembros={setMostrarMembros} setMostrarAcertos={setMostrarAcertos}
         setMostrarChecklist={setMostrarChecklist} setMostrarMapa={setMostrarMapa}
-        setMostrarCofre={setMostrarCofre} viagem={viagem}
+        setMostrarCofre={setMostrarCofre} setMostrarTransportes={setMostrarTransportes}
+        viagem={viagem}
       />
 
       <SeccaoMapa
         mostrarMapa={mostrarMapa} setMostrarMapa={setMostrarMapa}
         setMostrarMembros={setMostrarMembros} setMostrarAcertos={setMostrarAcertos}
         setMostrarChecklist={setMostrarChecklist} setMostrarItinerario={setMostrarItinerario}
-        setMostrarCofre={setMostrarCofre} viagem={viagem}
+        setMostrarCofre={setMostrarCofre} setMostrarTransportes={setMostrarTransportes}
+        viagem={viagem}
       />
 
       <SeccaoChecklist 
         mostrarChecklist={mostrarChecklist} setMostrarChecklist={setMostrarChecklist}
         setMostrarMembros={setMostrarMembros} setMostrarAcertos={setMostrarAcertos}
         setMostrarItinerario={setMostrarItinerario} setMostrarMapa={setMostrarMapa}
-        setMostrarCofre={setMostrarCofre} viagemId={viagem.id} 
+        setMostrarCofre={setMostrarCofre} setMostrarTransportes={setMostrarTransportes}
+        viagemId={viagem.id} 
       />
 
       <SeccaoAcertos 
         mostrarAcertos={mostrarAcertos} setMostrarAcertos={setMostrarAcertos} 
         setMostrarMembros={setMostrarMembros} setMostrarChecklist={setMostrarChecklist}
         setMostrarItinerario={setMostrarItinerario} setMostrarMapa={setMostrarMapa}
-        setMostrarCofre={setMostrarCofre}
+        setMostrarCofre={setMostrarCofre} setMostrarTransportes={setMostrarTransportes}
         membrosDaViagem={membrosDaViagem} todasDespesasDaViagem={todasDespesasDaViagem} 
         totalGastoNumerico={totalGastoNumerico} viagem={viagem} onLiquidar={onLiquidar}
       />
