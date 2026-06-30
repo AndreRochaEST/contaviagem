@@ -7,8 +7,9 @@ import FormDespesa from '../../components/FormDespesa';
 import CartaoViagem from '../../components/CartaoViagem';
 import FiltrosDashboard from '../../components/FiltrosDashboard';
 import AcoesDashboard from '../../components/AcoesDashboard';
+import AnalyticsGlobal from '../../components/AnalyticsGlobal';
 
-import { useViagem, useDespesa, useCategoria, useToast, useMembro } from '../../hooks';
+import { useViagem, useDespesa, useCategoria, useToast, useMembro, useAnalytics } from '../../hooks';
 import { MENSAGENS, CONFIRMACOES } from '../../utils';
 
 function DashboardContainer() {
@@ -17,6 +18,7 @@ function DashboardContainer() {
   const { categorias } = useCategoria();
   const { toast, mostrarSucesso, mostrarErro } = useToast();
   const { membros, criarMembro, apagarMembro, carregarMembros } = useMembro();
+  const { dados: dadosAnalytics, carregarAnalytics } = useAnalytics();
 
   const [mostrarFormViagem, setMostrarFormViagem] = useState(false);
   const [mostrarFormDespesa, setMostrarFormDespesa] = useState(false);
@@ -217,6 +219,7 @@ function DashboardContainer() {
         setMostrarFormDespesa(false);
         mostrarSucesso(editDespesaUid ? MENSAGENS.DESPESA_ATUALIZADA : MENSAGENS.DESPESA_CRIADA);
         if (typeof carregarDespesas === 'function') carregarDespesas();
+        if (typeof carregarAnalytics === 'function') carregarAnalytics();
       } else {
         mostrarErro(MENSAGENS.ERRO_SERVIDOR);
       }
@@ -242,6 +245,7 @@ function DashboardContainer() {
       if (result.sucesso) {
         mostrarSucesso('Dívida liquidada com sucesso!');
         if (typeof carregarDespesas === 'function') carregarDespesas();
+        if (typeof carregarAnalytics === 'function') carregarAnalytics();
       } else {
         mostrarErro('Erro ao liquidar dívida.');
       }
@@ -273,6 +277,7 @@ function DashboardContainer() {
         setMostrarFormViagem(false);
         mostrarSucesso(editViagemUid ? MENSAGENS.VIAGEM_ATUALIZADA : MENSAGENS.VIAGEM_CRIADA);
         if (typeof carregarViagens === 'function') carregarViagens();
+        if (typeof carregarAnalytics === 'function') carregarAnalytics();
       } else {
         mostrarErro(MENSAGENS.ERRO_SERVIDOR);
       }
@@ -288,6 +293,7 @@ function DashboardContainer() {
       if (result.sucesso) {
         mostrarSucesso(MENSAGENS.DESPESA_APAGADA);
         if (typeof carregarDespesas === 'function') carregarDespesas();
+        if (typeof carregarAnalytics === 'function') carregarAnalytics();
       } else {
         mostrarErro(MENSAGENS.ERRO_SERVIDOR);
       }
@@ -303,6 +309,7 @@ function DashboardContainer() {
       if (result.sucesso) {
         mostrarSucesso(MENSAGENS.VIAGEM_APAGADA);
         if (typeof carregarViagens === 'function') carregarViagens();
+        if (typeof carregarAnalytics === 'function') carregarAnalytics();
       } else {
         mostrarErro(result.erro || MENSAGENS.ERRO_SERVIDOR);
       }
@@ -347,6 +354,8 @@ function DashboardContainer() {
       <h1 className="dashboard__title">Dashboard ContaViagem ✈️</h1>
       
       <Toast toast={toast} />
+
+      <AnalyticsGlobal dados={dadosAnalytics} />
 
       <AcoesDashboard 
         mostrarFormViagem={mostrarFormViagem}

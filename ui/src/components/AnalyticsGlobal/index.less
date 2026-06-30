@@ -1,0 +1,65 @@
+.analytics-global {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+
+  &__card {
+    background-color: #ffffff;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  &__label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+  }
+
+  &__value {
+    margin: 8px 0 0 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+
+    &--blue {
+      color: #3b82f6;
+    }
+
+    &--green {
+      color: #0f766e;
+    }
+  }
+
+  &__list {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__list-empty {
+    font-size: 0.85rem;
+    color: #94a3b8;
+  }
+
+  &__list-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #475569;
+  }
+
+  &__list-name {
+    font-weight: 500;
+  }
+
+  &__list-total {
+    font-weight: 600;
+    color: #1e293b;
+  }
+}

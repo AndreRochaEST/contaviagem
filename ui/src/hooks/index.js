@@ -8,3 +8,4 @@ export { useItinerario } from './useItinerario';
 export { useClima } from './useClima';
 export { useDocumento } from './useDocumento';
 export { useTransporte } from './useTransporte';
+export { useAnalytics } from './useAnalytics';
