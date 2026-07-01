@@ -6,48 +6,124 @@
 
   &__header {
     display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-align: left;
+  }
+
+  &__header-top {
+    display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  &__destino-box {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    padding-right: 12px;
   }
 
   &__destino {
     margin: 0;
-    font-size: 18px;
+    font-size: 1.4rem;
+    font-weight: 800;
     color: #0f172a;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
   }
 
-  &__acoes {
-    button {
-      margin-left: 8px;
+  &__etapas {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  &__acoes-topo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  &__btn-pdf {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    background-color: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #f8fafc;
+      border-color: #94a3b8;
     }
   }
 
-  &__datas {
-    font-size: 14px;
-    color: #64748b;
-    margin: 10px 0 15px 0;
-  }
-
-  &__budget-bar {
+  &__resumo-box {
     display: flex;
     flex-direction: column;
+    gap: 14px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
   }
 
-  &__budget-resumo {
+  &__datas {
+    font-size: 0.75rem;
+    color: #64748b;
     display: flex;
-    gap: 12px;
     align-items: center;
-    color: #475569;
+    gap: 6px;
+    font-weight: 700;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
-  &__budget-gasto-valor {
-    color: var(--gasto-color);
+  &__orcamento-row {
+    display: flex;
+    justify-content: space-between;
+    background: #ffffff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
   }
 
-  &__budget-restante {
-    margin-top: 8px;
-    color: var(--restante-color);
+  &__orcamento-item {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #64748b;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
     font-weight: 600;
+
+    strong {
+      color: #1e293b;
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+  }
+
+  &__orcamento-destaque {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
+    font-weight: 800;
+    font-size: 1.1rem;
   }
 
   &__membros-container {

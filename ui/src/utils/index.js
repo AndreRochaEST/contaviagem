@@ -9,3 +9,4 @@ export {
 } from './calculations';
 export { CORES_GRAFICO, MENSAGENS, CONFIRMACOES } from './constants';
 export { callService } from './api';
+export { gerarPDFViagem } from './exportadorPDF';

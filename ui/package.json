@@ -16,6 +16,8 @@
     "@netuno/ws-client": "^1.1.0",
     "antd": "^6.1.1",
     "crypto-js": "^4.2.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "leaflet": "^1.9.4",
     "less": "4.5.1",
     "react": "^19.2.3",

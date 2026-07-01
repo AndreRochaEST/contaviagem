@@ -51,6 +51,7 @@ function CartaoViagem({
         viagem={viagem} totalGasto={totalGasto} orcamentoRestante={orcamentoRestante} 
         excedido={excedido} corGasto={corGasto} corRestante={corRestante} 
         onEdit={onEdit} onDelete={onDelete} 
+        despesas={todasDespesasDaViagem} membros={membrosDaViagem}
       />
 
       <SeccaoMembros 
