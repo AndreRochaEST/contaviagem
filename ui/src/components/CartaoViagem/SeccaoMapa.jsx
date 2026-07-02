@@ -44,7 +44,6 @@ const SeccaoMapa = ({
     setLoading(true);
     setPontos([]);
     
-    // 1. Extrair apenas a primeira cidade (Ex: "Madrid e Barcelona" -> "Madrid")
     const primeiraCidade = viagem.destino.split(/ e |,| ou | - | \/ /i)[0].trim();
 
     try {
@@ -102,7 +101,6 @@ const SeccaoMapa = ({
     }
   };
 
-  // 3. Componente interno que deteta cliques em qualquer zona do mapa
   const InteracoesMapa = () => {
     useMapEvents({
       async click(e) {
@@ -110,7 +108,6 @@ const SeccaoMapa = ({
         setNovoPontoClicado({ lat, lon: lng, nome: 'A identificar local...' });
 
         try {
-          // Faz Reverse Geocoding para descobrir o nome da rua ou monumento onde o utilizador clicou
           const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
           const data = await resp.json();
           
@@ -165,7 +162,6 @@ const SeccaoMapa = ({
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             
-            {/* Renderiza os monumentos vindos da API */}
             {pontos.map((ponto, idx) => (
               <Marker key={`ponto-${idx}`} position={[ponto.lat || ponto.center.lat, ponto.lon || ponto.center.lon]}>
                 <Popup>
@@ -187,7 +183,6 @@ const SeccaoMapa = ({
               </Marker>
             ))}
 
-            {/* Renderiza o Ponto Customizado onde o utilizador clicou */}
             {novoPontoClicado && (
               <Marker position={[novoPontoClicado.lat, novoPontoClicado.lon]}>
                 <Popup autoPan={true}>

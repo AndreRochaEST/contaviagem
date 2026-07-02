@@ -1,19 +1,26 @@
 import React, { useState } from 'react';
 import { useItinerario, useClima, useToast } from '../../hooks';
-import { MENSAGENS } from '../../utils';
+import { MENSAGENS, callService } from '../../utils';
 
-const SeccaoItinerario = ({ mostrarItinerario, setMostrarItinerario, setMostrarMembros, setMostrarAcertos, setMostrarChecklist, setMostrarMapa, viagem }) => {
+const SeccaoItinerario = ({ 
+  mostrarItinerario, setMostrarItinerario, setMostrarMembros, setMostrarAcertos, 
+  setMostrarChecklist, setMostrarMapa, setMostrarCofre, setMostrarTransportes, viagem 
+}) => {
   const [data, setData] = useState('');
   const [hora, setHora] = useState('');
   const [local, setLocal] = useState('');
   const [notas, setNotas] = useState('');
+
+  const [editItemId, setEditItemId] = useState(null);
+  const [editData, setEditData] = useState('');
+  const [editHora, setEditHora] = useState('');
 
   const viagemId = viagem ? viagem.id : null;
   const destino = viagem ? viagem.destino : null;
 
   const { itinerarios, criarItinerario, apagarItinerario, carregarItinerarios } = useItinerario(viagemId);
   const { clima } = useClima(destino, mostrarItinerario);
-  const { mostrarErro } = useToast();
+  const { mostrarErro, mostrarSucesso } = useToast();
 
   const handleAdd = async () => {
     if (!data || !hora || !local || !viagemId) return;
@@ -38,6 +45,37 @@ const SeccaoItinerario = ({ mostrarItinerario, setMostrarItinerario, setMostrarM
   const handleDelete = async (uid) => {
     const result = await apagarItinerario(uid);
     if (result.sucesso) carregarItinerarios();
+  };
+
+  const iniciarEdicao = (item) => {
+    setEditItemId(item.uid);
+    const dataOriginal = item.data_hora ? item.data_hora.substring(0, 10) : '';
+    const horaOriginal = item.data_hora ? item.data_hora.substring(11, 16) : '';
+    setEditData(item.data || dataOriginal);
+    setEditHora(item.hora || horaOriginal);
+  };
+
+  const salvarEdicao = async (item) => {
+    try {
+      const result = await callService({
+        url: '/itinerario/atualizar',
+        method: 'POST',
+        data: {
+          uid: item.uid,
+          data: editData,
+          hora: editHora
+        }
+      });
+      if (result && result.sucesso) {
+        setEditItemId(null);
+        carregarItinerarios();
+        mostrarSucesso('Data atualizada com sucesso!');
+      } else {
+        mostrarErro('Erro ao atualizar o itinerário.');
+      }
+    } catch (error) {
+      mostrarErro(MENSAGENS.ERRO_COMUNICACAO);
+    }
   };
 
   const itinerariosOrdenados = [...itinerarios].sort((a, b) => {
@@ -75,6 +113,8 @@ const SeccaoItinerario = ({ mostrarItinerario, setMostrarItinerario, setMostrarM
           setMostrarAcertos(false);
           setMostrarChecklist(false);
           setMostrarMapa(false);
+          setMostrarCofre(false);
+          setMostrarTransportes(false);
         }}
       >
         <span>📍 Itinerário ({itinerarios.length})</span>
@@ -101,22 +141,40 @@ const SeccaoItinerario = ({ mostrarItinerario, setMostrarItinerario, setMostrarM
                 
                 {itens.map(i => (
                   <div key={i.uid} style={{ display: 'flex', gap: '12px', padding: '12px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderLeft: '4px solid #3b82f6', borderRadius: '8px', position: 'relative', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    
+                    {editItemId === i.uid ? (
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <span style={{ fontWeight: '600', color: '#1e293b', fontSize: '1rem' }}>{i.local}</span>
-                        <button className="card-viagem__membro-remove" onClick={() => handleDelete(i.uid)} style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', padding: '0', lineHeight: '1' }}>✖</button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <input type="date" value={editData} onChange={e => setEditData(e.target.value)} style={{ flex: 1, padding: '6px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                          <input type="time" value={editHora} onChange={e => setEditHora(e.target.value)} style={{ flex: 1, padding: '6px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '4px' }}>
+                          <button onClick={() => setEditItemId(null)} style={{ background: '#f1f5f9', color: '#475569', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Cancelar</button>
+                          <button onClick={() => salvarEdicao(i)} style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Guardar</button>
+                        </div>
                       </div>
-                      {getDisplayHora(i) && (
-                        <span style={{ fontSize: '0.85rem', color: '#3b82f6', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          🕒 {getDisplayHora(i)}
-                        </span>
-                      )}
-                      {i.notas && (
-                        <span style={{ fontSize: '0.85rem', color: '#475569', backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #f1f5f9', marginTop: '2px' }}>
-                          📝 {i.notas}
-                        </span>
-                      )}
-                    </div>
+                    ) : (
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <span style={{ fontWeight: '600', color: '#1e293b', fontSize: '1rem' }}>{i.local}</span>
+                          <div style={{ display: 'flex', gap: '10px' }}>
+                            <button onClick={() => iniciarEdicao(i)} style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', padding: '0', lineHeight: '1' }}>✏️</button>
+                            <button onClick={() => handleDelete(i.uid)} style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', padding: '0', lineHeight: '1' }}>✖</button>
+                          </div>
+                        </div>
+                        {getDisplayHora(i) && (
+                          <span style={{ fontSize: '0.85rem', color: '#3b82f6', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            🕒 {getDisplayHora(i)}
+                          </span>
+                        )}
+                        {i.notas && (
+                          <span style={{ fontSize: '0.85rem', color: '#475569', backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #f1f5f9', marginTop: '2px' }}>
+                            📝 {i.notas}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -124,7 +182,7 @@ const SeccaoItinerario = ({ mostrarItinerario, setMostrarItinerario, setMostrarM
           </div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: '600', color: '#334155', marginBottom: '4px' }}>Adicionar Paragem</span>
+            <span style={{ fontSize: '0.9rem', fontWeight: '600', color: '#334155', marginBottom: '4px' }}>Adicionar Paragem Manual</span>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input type="date" className="card-viagem__membros-input" value={data} onChange={e => setData(e.target.value)} style={{ flex: 1, backgroundColor: '#fff' }} />
               <input type="time" className="card-viagem__membros-input" value={hora} onChange={e => setHora(e.target.value)} style={{ flex: 1, backgroundColor: '#fff' }} />
