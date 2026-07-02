@@ -3,7 +3,7 @@ import { formatarMoeda, gerarPDFViagem } from '../../utils';
 
 const CabecalhoOrcamento = ({ 
   viagem, totalGasto, orcamentoRestante, excedido, 
-  corGasto, corRestante, onEdit, onDelete, despesas, membros 
+  corGasto, corRestante, onEdit, onDelete, despesas, membros, onArquivar
 }) => {
 
   const handleExportarPDF = () => {
@@ -32,6 +32,13 @@ const CabecalhoOrcamento = ({
         <div className="card-viagem__acoes-topo">
           <button className="card-viagem__btn-pdf" onClick={handleExportarPDF} title="Exportar Relatório em PDF">
             📄 PDF
+          </button>
+          <button 
+            onClick={() => onArquivar(viagem.uid)} 
+            title={viagem.arquivada ? "Restaurar Viagem" : "Arquivar Viagem"} 
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0' }}
+          >
+            {viagem.arquivada ? '📤' : '📦'}
           </button>
           <button className="card-viagem__btn-edit" onClick={() => onEdit(viagem)} title="Editar Viagem">✏️</button>
           <button className="card-viagem__btn-delete" onClick={() => onDelete(viagem.uid)} title="Apagar Viagem">🗑️</button>

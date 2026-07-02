@@ -10,7 +10,7 @@ import AcoesDashboard from '../../components/AcoesDashboard';
 import AnalyticsGlobal from '../../components/AnalyticsGlobal';
 
 import { useViagem, useDespesa, useCategoria, useToast, useMembro, useAnalytics } from '../../hooks';
-import { MENSAGENS, CONFIRMACOES } from '../../utils';
+import { MENSAGENS, CONFIRMACOES, callService } from '../../utils';
 
 function DashboardContainer() {
   const { viagens, carregarViagens, criarViagem, atualizarViagem, apagarViagem } = useViagem();
@@ -27,6 +27,8 @@ function DashboardContainer() {
   const [filtroCategoria, setFiltroCategoria] = useState('todos');
 
   const [editDespesaUid, setEditDespesaUid] = useState(null);
+  
+  const [verArquivadas, setVerArquivadas] = useState(false);
   
   const [formDespesa, setFormDespesa] = useState({
     descricao: '',
@@ -318,6 +320,20 @@ function DashboardContainer() {
     }
   };
 
+  const handleArquivarViagem = async (uid) => {
+    try {
+      const result = await callService({ url: '/viagem/arquivar', method: 'POST', data: { uid } });
+      if (result && result.sucesso) {
+        mostrarSucesso(result.arquivada ? 'Viagem enviada para o arquivo! 📦' : 'Viagem restaurada! 📤');
+        if (typeof carregarViagens === 'function') carregarViagens();
+      } else {
+        mostrarErro('Erro ao alterar o estado de arquivo.');
+      }
+    } catch (error) {
+      mostrarErro(MENSAGENS.ERRO_COMUNICACAO);
+    }
+  };
+
   const handleAddMembro = async (viagemId, nome) => {
     const result = await criarMembro({ viagem_id: viagemId, nome });
     if (result.sucesso) {
@@ -349,6 +365,11 @@ function DashboardContainer() {
     }
   }
 
+  const viagensExibidas = viagens.filter(viagem => {
+    const isArquivada = viagem.arquivada === true || viagem.arquivada === 1 || viagem.arquivada === 'true';
+    return verArquivadas ? isArquivada : !isArquivada;
+  });
+
   return (
     <div className="dashboard">
       <h1 className="dashboard__title">Dashboard ContaViagem ✈️</h1>
@@ -356,6 +377,21 @@ function DashboardContainer() {
       <Toast toast={toast} />
 
       <AnalyticsGlobal dados={dadosAnalytics} />
+
+      <div className="dashboard__abas">
+        <button 
+          className={`dashboard__aba ${!verArquivadas ? 'dashboard__aba--ativa' : ''}`}
+          onClick={() => setVerArquivadas(false)}
+        >
+          ✈️ Viagens Ativas
+        </button>
+        <button 
+          className={`dashboard__aba ${verArquivadas ? 'dashboard__aba--ativa' : ''}`}
+          onClick={() => setVerArquivadas(true)}
+        >
+          📦 Arquivo
+        </button>
+      </div>
 
       <AcoesDashboard 
         mostrarFormViagem={mostrarFormViagem}
@@ -411,7 +447,7 @@ function DashboardContainer() {
       />
 
       <div className="dashboard__grid">
-        {viagens.map(viagem => (
+        {viagensExibidas.map(viagem => (
           <CartaoViagem
             key={viagem.uid}
             viagem={viagem}
@@ -426,6 +462,7 @@ function DashboardContainer() {
             onAddMembro={handleAddMembro}
             onDeleteMembro={handleDeleteMembro}
             onLiquidar={handleLiquidar}
+            onArquivar={handleArquivarViagem}
           />
         ))}
       </div>

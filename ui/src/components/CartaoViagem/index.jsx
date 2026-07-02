@@ -16,7 +16,7 @@ import SeccaoTransportes from './SeccaoTransportes';
 function CartaoViagem({ 
   viagem, despesas, membros = [], categorias = [], tarefas = [], filtroTexto, filtroCategoria,
   onEdit, onDelete, onEditDespesa, onDeleteDespesa, onAddMembro, onDeleteMembro, onLiquidar,
-  onAddTarefa, onToggleTarefa, onDeleteTarefa
+  onAddTarefa, onToggleTarefa, onDeleteTarefa, onArquivar
 }) {
   const [mostrarMembros, setMostrarMembros] = useState(false);
   const [mostrarAcertos, setMostrarAcertos] = useState(false);
@@ -52,6 +52,7 @@ function CartaoViagem({
         excedido={excedido} corGasto={corGasto} corRestante={corRestante} 
         onEdit={onEdit} onDelete={onDelete} 
         despesas={todasDespesasDaViagem} membros={membrosDaViagem}
+        onArquivar={onArquivar}
       />
 
       <SeccaoMembros 
