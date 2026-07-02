@@ -1,88 +1,133 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useItinerario, useToast } from '../../hooks';
+import { MENSAGENS } from '../../utils';
 
-const iconDestino = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41],
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
-  shadowSize: [41, 41]
 });
+L.Marker.prototype.options.icon = DefaultIcon;
 
-const iconUser = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-const FlyToLocation = ({ coords }) => {
+const ChangeView = ({ center }) => {
   const map = useMap();
-  useEffect(() => {
-    if (coords && coords.length > 0) {
-      map.flyTo(coords[0].coords, 6);
-    }
-  }, [coords, map]);
+  map.setView(center, map.getZoom());
   return null;
-}
+};
 
-const SeccaoMapa = ({ mostrarMapa, setMostrarMapa, setMostrarMembros, setMostrarAcertos, setMostrarChecklist, setMostrarItinerario, viagem }) => {
-  const [locaisDestino, setLocaisDestino] = useState([]);
-  const [coordsUser, setCoordsUser] = useState(null);
-  const [carregando, setCarregando] = useState(false);
+const SeccaoMapa = ({ 
+  mostrarMapa, setMostrarMapa, setMostrarMembros, setMostrarAcertos, 
+  setMostrarChecklist, setMostrarItinerario, setMostrarCofre, setMostrarTransportes, viagem 
+}) => {
+  const [centro, setCentro] = useState([38.7223, -9.1393]);
+  const [pontos, setPontos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [novoPontoClicado, setNovoPontoClicado] = useState(null);
+
+  const { criarItinerario, carregarItinerarios } = useItinerario(viagem.id);
+  const { mostrarSucesso, mostrarErro } = useToast();
 
   useEffect(() => {
-    if (mostrarMapa && locaisDestino.length === 0) {
-      setCarregando(true);
-      
-      const extrairCidades = (texto) => {
-        if (!texto) return [];
-        return texto.replace(/ e /gi, ',').replace(/ y /gi, ',').replace(/ and /gi, ',').split(',').map(c => c.trim()).filter(c => c !== '');
-      };
-
-      const cidadesParaProcurar = [];
-      extrairCidades(viagem.destino).forEach(c => {
-        if (!cidadesParaProcurar.includes(c)) cidadesParaProcurar.push(c);
-      });
-      extrairCidades(viagem.etapas).forEach(c => {
-        if (!cidadesParaProcurar.includes(c)) cidadesParaProcurar.push(c);
-      });
-
-      const fetchLocais = async () => {
-        const resultados = [];
-        for (const cidade of cidadesParaProcurar) {
-          try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cidade)}`);
-            const data = await res.json();
-            if (data && data.length > 0) {
-              resultados.push({
-                nome: cidade,
-                coords: [parseFloat(data[0].lat), parseFloat(data[0].lon)]
-              });
-            }
-          } catch (error) {}
-          await new Promise(r => setTimeout(r, 500));
-        }
-        setLocaisDestino(resultados);
-        setCarregando(false);
-      };
-
-      fetchLocais();
-
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition((pos) => {
-          setCoordsUser([pos.coords.latitude, pos.coords.longitude]);
-        });
-      }
+    if (mostrarMapa && viagem && viagem.destino) {
+      carregarDadosMapa();
     }
-  }, [mostrarMapa, viagem.destino, viagem.etapas, locaisDestino.length]);
+  }, [mostrarMapa, viagem]);
 
-  const centroInicial = locaisDestino.length > 0 ? locaisDestino[0].coords : [38.7223, -9.1393];
+  const carregarDadosMapa = async () => {
+    setLoading(true);
+    setPontos([]);
+    
+    // 1. Extrair apenas a primeira cidade (Ex: "Madrid e Barcelona" -> "Madrid")
+    const primeiraCidade = viagem.destino.split(/ e |,| ou | - | \/ /i)[0].trim();
+
+    try {
+      const respGeo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(primeiraCidade)}`);
+      const dataGeo = await respGeo.json();
+
+      if (dataGeo && dataGeo.length > 0) {
+        const lat = parseFloat(dataGeo[0].lat);
+        const lon = parseFloat(dataGeo[0].lon);
+        setCentro([lat, lon]);
+
+        // 2. Usar nwr (Node, Way, Relation) apanha muito mais monumentos do que apenas "node"
+        const query = `
+          [out:json][timeout:15];
+          (
+            nwr["historic"](around:4000, ${lat}, ${lon});
+            nwr["tourism"="attraction"](around:4000, ${lat}, ${lon});
+            nwr["tourism"="museum"](around:4000, ${lat}, ${lon});
+          );
+          out center 25;
+        `;
+        
+        const respOverpass = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
+        const dataOverpass = await respOverpass.json();
+        
+        if (dataOverpass && dataOverpass.elements) {
+          const locaisValidos = dataOverpass.elements.filter(el => el.tags && (el.tags.name || el.tags.historic));
+          setPontos(locaisValidos);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao carregar mapa:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddItinerario = async (localName) => {
+    const result = await criarItinerario({
+      viagem_id: parseInt(viagem.id),
+      data: '',
+      hora: '',
+      local: localName,
+      notas: 'Adicionado via Mapa Interativo 🗺️'
+    });
+
+    if (result.sucesso) {
+      carregarItinerarios();
+      mostrarSucesso(`${localName} adicionado ao itinerário!`);
+      setMostrarMapa(false);
+      setMostrarItinerario(true);
+      setNovoPontoClicado(null);
+    } else {
+      mostrarErro(MENSAGENS.ERRO_SERVIDOR);
+    }
+  };
+
+  // 3. Componente interno que deteta cliques em qualquer zona do mapa
+  const InteracoesMapa = () => {
+    useMapEvents({
+      async click(e) {
+        const { lat, lng } = e.latlng;
+        setNovoPontoClicado({ lat, lon: lng, nome: 'A identificar local...' });
+
+        try {
+          // Faz Reverse Geocoding para descobrir o nome da rua ou monumento onde o utilizador clicou
+          const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+          const data = await resp.json();
+          
+          let nomeLocal = 'Local Selecionado';
+          if (data && data.name) nomeLocal = data.name;
+          else if (data && data.address) {
+            nomeLocal = data.address.tourism || data.address.historic || data.address.road || 'Ponto de Interesse';
+          }
+          
+          setNovoPontoClicado({ lat, lon: lng, nome: nomeLocal });
+        } catch (err) {
+          setNovoPontoClicado({ lat, lon: lng, nome: 'Coordenada Selecionada' });
+        }
+      }
+    });
+    return null;
+  };
 
   return (
     <div className="card-viagem__membros-container" style={{ marginTop: '-10px' }}>
@@ -95,6 +140,8 @@ const SeccaoMapa = ({ mostrarMapa, setMostrarMapa, setMostrarMembros, setMostrar
           setMostrarAcertos(false);
           setMostrarChecklist(false);
           setMostrarItinerario(false);
+          setMostrarCofre(false);
+          setMostrarTransportes(false);
         }}
       >
         <span>🗺️ Mapa e Localização</span>
@@ -102,31 +149,61 @@ const SeccaoMapa = ({ mostrarMapa, setMostrarMapa, setMostrarMembros, setMostrar
       </button>
 
       {mostrarMapa && (
-        <div className="card-viagem__membros-content" style={{ padding: '12px' }}>
-          {carregando && <p style={{ textAlign: 'center', color: '#64748b', fontSize: '0.9rem', marginBottom: '10px' }}>A procurar coordenadas no mapa...</p>}
+        <div className="card-viagem__membros-content" style={{ padding: '0', height: '400px', position: 'relative', zIndex: 1 }}>
           
-          <div style={{ height: '350px', width: '100%', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0', zIndex: 0 }}>
-            <MapContainer center={centroInicial} zoom={6} style={{ height: '100%', width: '100%', zIndex: 0 }}>
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; OpenStreetMap contributors'
-              />
-              
-              {locaisDestino.length > 0 && !carregando && <FlyToLocation coords={locaisDestino} />}
-              
-              {locaisDestino.map((local, index) => (
-                <Marker key={index} position={local.coords} icon={iconDestino}>
-                  <Popup>📍 Etapa da Viagem:<br/><b>{local.nome}</b></Popup>
-                </Marker>
-              ))}
+          {loading && (
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255,255,255,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, fontWeight: 'bold', color: '#3b82f6' }}>
+              A carregar atrações em {viagem.destino.split(/ e |,/i)[0]}...
+            </div>
+          )}
+          
+          <MapContainer center={centro} zoom={13} style={{ height: '100%', width: '100%', borderBottomLeftRadius: '8px', borderBottomRightRadius: '8px' }}>
+            <ChangeView center={centro} />
+            <InteracoesMapa />
+            <TileLayer
+              attribution='&copy; OpenStreetMap'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            
+            {/* Renderiza os monumentos vindos da API */}
+            {pontos.map((ponto, idx) => (
+              <Marker key={`ponto-${idx}`} position={[ponto.lat || ponto.center.lat, ponto.lon || ponto.center.lon]}>
+                <Popup>
+                  <div style={{ textAlign: 'center', padding: '4px' }}>
+                    <h4 style={{ margin: '0 0 4px 0', color: '#1e293b', fontSize: '1rem' }}>
+                      {ponto.tags.name || 'Monumento Histórico'}
+                    </h4>
+                    <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b', marginBottom: '10px', textTransform: 'capitalize' }}>
+                      {ponto.tags.tourism || ponto.tags.historic || 'Ponto de Interesse'}
+                    </span>
+                    <button 
+                      onClick={() => handleAddItinerario(ponto.tags.name || 'Monumento')}
+                      style={{ backgroundColor: '#3b82f6', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', width: '100%' }}
+                    >
+                      ➕ Adicionar
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
 
-              {coordsUser && (
-                <Marker position={coordsUser} icon={iconUser}>
-                  <Popup>🔴 <b>Tu estás aqui!</b></Popup>
-                </Marker>
-              )}
-            </MapContainer>
-          </div>
+            {/* Renderiza o Ponto Customizado onde o utilizador clicou */}
+            {novoPontoClicado && (
+              <Marker position={[novoPontoClicado.lat, novoPontoClicado.lon]}>
+                <Popup autoPan={true}>
+                  <div style={{ textAlign: 'center', padding: '4px' }}>
+                    <h4 style={{ margin: '0 0 8px 0', color: '#10b981', fontSize: '1rem' }}>📍 {novoPontoClicado.nome}</h4>
+                    <button 
+                      onClick={() => handleAddItinerario(novoPontoClicado.nome)}
+                      style={{ backgroundColor: '#10b981', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', width: '100%' }}
+                    >
+                      ➕ Guardar no Itinerário
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+          </MapContainer>
         </div>
       )}
     </div>
