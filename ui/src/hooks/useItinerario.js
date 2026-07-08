@@ -21,7 +21,7 @@ export function useItinerario(viagemId) {
   };
 
   const atualizarItinerario = async (dados) => {
-    return await callService({ url: '/itinerario', method: 'PUT', data: dados });
+    return await callService({ url: '/itinerario/atualizar', method: 'POST', data: dados });
   };
 
   const apagarItinerario = async (uid) => {

@@ -1,19 +1,21 @@
-var uid = _req.getString("uid");
-var data = _req.getString("data");
-var hora = _req.getString("hora");
+var uid = _req.get("uid");
+var data = _req.get("data");
+var hora = _req.get("hora");
+var local = _req.get("local");
+var notas = _req.get("notas");
 
 if (uid != "") {
     var dataHora = "";
     
     if (data != "" && hora != "") {
-        dataHora = data + " " + hora + ":00";
+        dataHora = data + " " + hora + (hora.length <= 5 ? ":00" : "");
     } else if (data != "") {
         dataHora = data + " 00:00:00";
     }
 
     _db.execute(
-        "UPDATE itinerario SET data = ?, hora = ?, data_hora = ? WHERE uid = ?",
-        data, hora, dataHora, uid
+        "UPDATE itinerario SET data_hora = ?, local = ?, notas = ? WHERE uid = ?",
+        dataHora, local, notas, uid
     );
     
     _out.json(_val.map().set("sucesso", true));

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useItinerario, useClima, useToast } from '../../hooks';
-import { MENSAGENS, callService } from '../../utils';
+import { MENSAGENS } from '../../utils';
 
 const SeccaoItinerario = ({ 
   mostrarItinerario, setMostrarItinerario, setMostrarMembros, setMostrarAcertos, 
@@ -14,16 +14,18 @@ const SeccaoItinerario = ({
   const [editItemId, setEditItemId] = useState(null);
   const [editData, setEditData] = useState('');
   const [editHora, setEditHora] = useState('');
+  const [editLocal, setEditLocal] = useState('');
+  const [editNotas, setEditNotas] = useState('');
 
   const viagemId = viagem ? viagem.id : null;
   const destino = viagem ? viagem.destino : null;
 
-  const { itinerarios, criarItinerario, apagarItinerario, carregarItinerarios } = useItinerario(viagemId);
+  const { itinerarios, criarItinerario, atualizarItinerario, apagarItinerario, carregarItinerarios } = useItinerario(viagemId);
   const { clima } = useClima(destino, mostrarItinerario);
   const { mostrarErro, mostrarSucesso } = useToast();
 
   const handleAdd = async () => {
-    if (!data || !hora || !local || !viagemId) return;
+    if (!data || !local || !viagemId) return;
     const result = await criarItinerario({
       viagem_id: parseInt(viagemId),
       data: data,
@@ -51,25 +53,30 @@ const SeccaoItinerario = ({
     setEditItemId(item.uid);
     const dataOriginal = item.data_hora ? item.data_hora.substring(0, 10) : '';
     const horaOriginal = item.data_hora ? item.data_hora.substring(11, 16) : '';
+    
     setEditData(item.data || dataOriginal);
     setEditHora(item.hora || horaOriginal);
+    setEditLocal(item.local || '');
+    setEditNotas(item.notas || '');
   };
 
   const salvarEdicao = async (item) => {
     try {
-      const result = await callService({
-        url: '/itinerario/atualizar',
-        method: 'POST',
-        data: {
-          uid: item.uid,
-          data: editData,
-          hora: editHora
-        }
-      });
+      const dados = {
+        uid: item.uid,
+        viagem_id: parseInt(viagemId),
+        local: editLocal,
+        data: editData,
+        hora: editHora,
+        notas: editNotas
+      };
+
+      const result = await atualizarItinerario(dados);
+      
       if (result && result.sucesso) {
         setEditItemId(null);
         carregarItinerarios();
-        mostrarSucesso('Data atualizada com sucesso!');
+        mostrarSucesso('Itinerário atualizado com sucesso!');
       } else {
         mostrarErro('Erro ao atualizar o itinerário.');
       }
@@ -144,11 +151,28 @@ const SeccaoItinerario = ({
                     
                     {editItemId === i.uid ? (
                       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <span style={{ fontWeight: '600', color: '#1e293b', fontSize: '1rem' }}>{i.local}</span>
+                        <input 
+                          type="text" 
+                          value={editLocal} 
+                          onChange={e => setEditLocal(e.target.value)} 
+                          placeholder="Local (ex: Coliseu)"
+                          style={{ padding: '6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: '600', color: '#1e293b' }} 
+                        />
+                        
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <input type="date" value={editData} onChange={e => setEditData(e.target.value)} style={{ flex: 1, padding: '6px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
                           <input type="time" value={editHora} onChange={e => setEditHora(e.target.value)} style={{ flex: 1, padding: '6px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
                         </div>
+                        
+                        {/* NOVO: Input para as Notas */}
+                        <input 
+                          type="text" 
+                          value={editNotas} 
+                          onChange={e => setEditNotas(e.target.value)} 
+                          placeholder="Notas ou detalhes adicionais..."
+                          style={{ padding: '6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }} 
+                        />
+                        
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '4px' }}>
                           <button onClick={() => setEditItemId(null)} style={{ background: '#f1f5f9', color: '#475569', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Cancelar</button>
                           <button onClick={() => salvarEdicao(i)} style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Guardar</button>
