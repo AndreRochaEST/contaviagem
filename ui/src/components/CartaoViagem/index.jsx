@@ -70,6 +70,7 @@ function CartaoViagem({
         setMostrarChecklist={setMostrarChecklist} setMostrarItinerario={setMostrarItinerario}
         setMostrarMapa={setMostrarMapa} setMostrarTransportes={setMostrarTransportes}
         viagemId={viagem.id}
+        membros={membros}
       />
 
       <SeccaoTransportes
