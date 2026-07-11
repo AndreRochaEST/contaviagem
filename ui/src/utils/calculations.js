@@ -101,3 +101,30 @@ export const calcularTransacoesAcerto = (membrosDaViagem, todasDespesasDaViagem)
   }
   return transacoes;
 };
+
+export const detetarTemposMortos = (transportes, limiteHoras = 6) => {
+  if (!transportes || transportes.length < 2) return [];
+
+  const ordenados = [...transportes]
+    .filter(t => t.partida)
+    .sort((a, b) => new Date(a.partida) - new Date(b.partida));
+
+  const alertas = [];
+
+  for (let i = 0; i < ordenados.length - 1; i++) {
+    const atual = ordenados[i];
+    const proximo = ordenados[i + 1];
+    
+    const diffHoras = (new Date(proximo.partida) - new Date(atual.partida)) / (1000 * 60 * 60);
+
+    if (diffHoras >= limiteHoras && diffHoras <= 24) {
+      alertas.push({
+        index: i,
+        horas: Math.floor(diffHoras),
+        destino: atual.destino,
+        proximoDestino: proximo.destino
+      });
+    }
+  }
+  return alertas;
+};

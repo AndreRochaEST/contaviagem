@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTransporte, useToast } from '../../hooks';
 import { MENSAGENS } from '../../utils';
+import { detetarTemposMortos } from '../../utils/calculations';
 
 const SeccaoTransportes = ({ mostrarTransportes, setMostrarTransportes, setMostrarMembros, setMostrarAcertos, setMostrarChecklist, setMostrarItinerario, setMostrarMapa, setMostrarCofre, viagemId }) => {
   const [operadora, setOperadora] = useState('');
@@ -28,6 +29,9 @@ const SeccaoTransportes = ({ mostrarTransportes, setMostrarTransportes, setMostr
     if (result.sucesso) carregarTransportes();
   };
 
+  const transportesOrdenados = [...transportes].sort((a, b) => new Date(a.partida || '9999') - new Date(b.partida || '9999'));
+  const alertas = detetarTemposMortos(transportes);
+
   return (
     <div className="card-viagem__membros-container" style={{ marginTop: '-10px' }}>
       <button
@@ -47,21 +51,31 @@ const SeccaoTransportes = ({ mostrarTransportes, setMostrarTransportes, setMostr
         <div className="card-viagem__membros-content">
           <div className="card-viagem__checklist-lista" style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
             {transportes.length === 0 && <span className="card-viagem__membro-vazio">Nenhuma ligação registada.</span>}
-            {transportes.map(t => (
-              <div key={t.uid} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderLeft: '4px solid #f59e0b', borderRadius: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 'bold', color: '#1e293b', fontSize: '1.05rem' }}>{t.operadora}</span>
-                    {t.lugar && <span style={{ fontSize: '0.9rem', color: '#f59e0b', fontWeight: '700', backgroundColor: '#fef3c7', padding: '2px 8px', borderRadius: '4px' }}>Lugar {t.lugar}</span>}
+            {transportesOrdenados.map((t, index) => {
+              const alerta = alertas.find(a => a.index === index);
+              return (
+                <React.Fragment key={t.uid}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderLeft: '4px solid #f59e0b', borderRadius: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 'bold', color: '#1e293b', fontSize: '1.05rem' }}>{t.operadora}</span>
+                        {t.lugar && <span style={{ fontSize: '0.9rem', color: '#f59e0b', fontWeight: '700', backgroundColor: '#fef3c7', padding: '2px 8px', borderRadius: '4px' }}>Lugar {t.lugar}</span>}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', fontSize: '0.95rem', fontWeight: '500' }}>
+                        <span>{t.origem}</span> <span style={{ color: '#cbd5e1' }}>➔</span> <span>{t.destino}</span>
+                      </div>
+                      {t.partida && <span style={{ fontSize: '0.85rem', color: '#64748b' }}>🕒 Partida: {t.partida.replace('T', ' às ')}</span>}
+                    </div>
+                    <button className="card-viagem__membro-remove" onClick={() => handleDelete(t.uid)} style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0 0 12px' }}>✖</button>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', fontSize: '0.95rem', fontWeight: '500' }}>
-                    <span>{t.origem}</span> <span style={{ color: '#cbd5e1' }}>➔</span> <span>{t.destino}</span>
-                  </div>
-                  {t.partida && <span style={{ fontSize: '0.85rem', color: '#64748b' }}>🕒 Partida: {t.partida.replace('T', ' às ')}</span>}
-                </div>
-                <button className="card-viagem__membro-remove" onClick={() => handleDelete(t.uid)} style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0 0 12px' }}>✖</button>
-              </div>
-            ))}
+                  {alerta && (
+                    <div style={{ padding: '10px 14px', backgroundColor: '#fffbe6', border: '1px solid #ffe58f', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '10px', color: '#d46b08', fontSize: '0.9rem' }}>
+                      <span>⏱️</span> <strong>Tempo Morto:</strong> {alerta.horas}h em {alerta.destino}. Sugestão: Cacifos!
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>

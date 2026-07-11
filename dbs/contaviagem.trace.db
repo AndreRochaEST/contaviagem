@@ -13461,3 +13461,24 @@ UPDATE itinerario SET data = ?, hora = ?, data_hora = ?, local = ?, notas = ? WH
 	at org.eclipse.jetty.util.thread.QueuedThreadPool$Runner.doRunJob(QueuedThreadPool.java:1239)
 	at org.eclipse.jetty.util.thread.QueuedThreadPool$Runner.run(QueuedThreadPool.java:1194)
 	at java.base/java.lang.Thread.run(Thread.java:1474)
+2026-07-10 02:11:32.457705+01:00 jdbc[58]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "cofre_contribuicao" not found; SQL statement:
+SELECT cc.uid, cc.valor, m.nome as membro_nome FROM cofre_contribuicao cc JOIN membro m ON cc.membro_id = m.id WHERE cc.viagem_id = ? AND cc.active = true [42102-240]
+2026-07-10 02:11:38.154629+01:00 jdbc[55]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "cofre_contribuicao" not found; SQL statement:
+SELECT cc.uid, cc.valor, m.nome as membro_nome FROM cofre_contribuicao cc JOIN membro m ON cc.membro_id = m.id WHERE cc.viagem_id = ? AND cc.active = true [42102-240]
+2026-07-10 02:11:45.966627+01:00 jdbc[56]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "cofre_contribuicao" not found; SQL statement:
+SELECT cc.uid, cc.valor, m.nome as membro_nome FROM cofre_contribuicao cc JOIN membro m ON cc.membro_id = m.id WHERE cc.viagem_id = ? AND cc.active = true [42102-240]
+2026-07-10 02:33:03.301781+01:00 jdbc[67]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "cofre_contribuicao" not found; SQL statement:
+SELECT cc.uid, cc.valor, m.nome as membro_nome FROM cofre_contribuicao cc JOIN membro m ON cc.membro_id = m.id WHERE cc.viagem_id = ? AND cc.active = true [42102-240]
+2026-07-10 02:33:06.269459+01:00 jdbc[63]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "cofre_contribuicao" not found; SQL statement:
+SELECT cc.uid, cc.valor, m.nome as membro_nome FROM cofre_contribuicao cc JOIN membro m ON cc.membro_id = m.id WHERE cc.viagem_id = ? AND cc.active = true [42102-240]
+2026-07-10 02:35:16.081026+01:00 jdbc[65]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "cofre_contribuicao" not found; SQL statement:
+SELECT cc.uid, cc.valor, m.nome as membro_nome FROM cofre_contribuicao cc JOIN membro m ON cc.membro_id = m.id WHERE cc.viagem_id = ? AND cc.active = true [42102-240]
+2026-07-10 02:35:20.297740+01:00 jdbc[68]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "cofre_contribuicao" not found; SQL statement:
+SELECT cc.uid, cc.valor, m.nome as membro_nome FROM cofre_contribuicao cc JOIN membro m ON cc.membro_id = m.id WHERE cc.viagem_id = ? AND cc.active = true [42102-240]
