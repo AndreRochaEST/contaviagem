@@ -14,6 +14,7 @@ export function useTransporte(viagemId) {
 
   const criarTransporte = async (dados) => await callService({ url: '/transporte', method: 'POST', data: dados });
   const apagarTransporte = async (uid) => await callService({ url: '/transporte', method: 'DELETE', data: { uid } });
+  const atualizarTransporte = async (dados) => await callService({ url: '/transporte', method: 'PUT', data: dados });
 
-  return { transportes, carregarTransportes, criarTransporte, apagarTransporte };
+  return { transportes, carregarTransportes, criarTransporte, atualizarTransporte, apagarTransporte };
 }

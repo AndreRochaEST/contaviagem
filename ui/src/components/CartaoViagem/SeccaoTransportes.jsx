@@ -3,30 +3,84 @@ import { useTransporte, useToast } from '../../hooks';
 import { MENSAGENS } from '../../utils';
 import { detetarTemposMortos } from '../../utils/calculations';
 
-const SeccaoTransportes = ({ mostrarTransportes, setMostrarTransportes, setMostrarMembros, setMostrarAcertos, setMostrarChecklist, setMostrarItinerario, setMostrarMapa, setMostrarCofre, viagemId }) => {
+const SeccaoTransportes = ({ 
+  mostrarTransportes, setMostrarTransportes, setMostrarMembros, setMostrarAcertos, 
+  setMostrarChecklist, setMostrarItinerario, setMostrarMapa, setMostrarCofre, viagemId 
+}) => {
+  const [editUid, setEditUid] = useState(null);
   const [operadora, setOperadora] = useState('');
   const [origem, setOrigem] = useState('');
   const [destino, setDestino] = useState('');
   const [partida, setPartida] = useState('');
   const [lugar, setLugar] = useState('');
 
-  const { transportes, criarTransporte, apagarTransporte, carregarTransportes } = useTransporte(viagemId);
-  const { mostrarErro } = useToast();
+  const { transportes, criarTransporte, atualizarTransporte, apagarTransporte, carregarTransportes } = useTransporte(viagemId);
+  const { mostrarErro, mostrarSucesso } = useToast();
 
-  const handleAdd = async () => {
-    if (!operadora || !origem || !destino) return;
-    const result = await criarTransporte({ viagem_id: parseInt(viagemId), operadora, origem, destino, partida, lugar });
-    if (result.sucesso) {
-      setOperadora(''); setOrigem(''); setDestino(''); setPartida(''); setLugar('');
+  const iniciarEdicao = (transporte) => {
+    setEditUid(transporte.uid);
+    setOperadora(transporte.operadora || '');
+    setOrigem(transporte.origem || '');
+    setDestino(transporte.destino || '');
+    if (transporte.partida) {
+      const partidaStr = transporte.partida.replace(' ', 'T').substring(0, 16);
+      setPartida(partidaStr);
+    } else {
+      setPartida('');
+    }
+    setLugar(transporte.lugar || '');
+  };
+
+  const cancelarEdicao = () => {
+    setEditUid(null);
+    setOperadora('');
+    setOrigem('');
+    setDestino('');
+    setPartida('');
+    setLugar('');
+  };
+
+  const handleSubmit = async () => {
+    if (!operadora || !origem || !destino) {
+      mostrarErro('Preenche a operadora, origem e destino.');
+      return;
+    }
+
+    const dados = {
+      viagem_id: parseInt(viagemId),
+      operadora,
+      origem,
+      destino,
+      partida,
+      lugar
+    };
+
+    let result;
+    if (editUid) {
+      dados.uid = editUid;
+      result = await atualizarTransporte(dados);
+    } else {
+      result = await criarTransporte(dados);
+    }
+
+    if (result && result.sucesso) {
+      mostrarSucesso(editUid ? 'Transporte atualizado!' : 'Transporte adicionado!');
+      cancelarEdicao();
       carregarTransportes();
     } else {
-      mostrarErro(MENSAGENS.ERRO_SERVIDOR);
+      mostrarErro(result?.erro || MENSAGENS.ERRO_SERVIDOR);
     }
   };
 
   const handleDelete = async (uid) => {
+    if (!window.confirm('Queres mesmo apagar este transporte?')) return;
     const result = await apagarTransporte(uid);
-    if (result.sucesso) carregarTransportes();
+    if (result && result.sucesso) {
+      mostrarSucesso('Transporte removido.');
+      carregarTransportes();
+    } else {
+      mostrarErro(result?.erro || MENSAGENS.ERRO_SERVIDOR);
+    }
   };
 
   const transportesOrdenados = [...transportes].sort((a, b) => new Date(a.partida || '9999') - new Date(b.partida || '9999'));
@@ -55,7 +109,17 @@ const SeccaoTransportes = ({ mostrarTransportes, setMostrarTransportes, setMostr
               const alerta = alertas.find(a => a.index === index);
               return (
                 <React.Fragment key={t.uid}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderLeft: '4px solid #f59e0b', borderRadius: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between', 
+                    padding: '14px', 
+                    backgroundColor: '#ffffff', 
+                    border: '1px solid #e2e8f0', 
+                    borderLeft: '4px solid #f59e0b', 
+                    borderRadius: '8px', 
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)' 
+                  }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ fontWeight: 'bold', color: '#1e293b', fontSize: '1.05rem' }}>{t.operadora}</span>
@@ -66,7 +130,22 @@ const SeccaoTransportes = ({ mostrarTransportes, setMostrarTransportes, setMostr
                       </div>
                       {t.partida && <span style={{ fontSize: '0.85rem', color: '#64748b' }}>🕒 Partida: {t.partida.replace('T', ' às ')}</span>}
                     </div>
-                    <button className="card-viagem__membro-remove" onClick={() => handleDelete(t.uid)} style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0 0 12px' }}>✖</button>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <button 
+                        onClick={() => iniciarEdicao(t)} 
+                        style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', padding: '0' }}
+                        title="Editar transporte"
+                      >
+                        ✏️
+                      </button>
+                      <button 
+                        className="card-viagem__membro-remove" 
+                        onClick={() => handleDelete(t.uid)} 
+                        style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0' }}
+                      >
+                        ✖
+                      </button>
+                    </div>
                   </div>
                   {alerta && (
                     <div style={{ padding: '10px 14px', backgroundColor: '#fffbe6', border: '1px solid #ffe58f', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '10px', color: '#d46b08', fontSize: '0.9rem' }}>
@@ -79,17 +158,89 @@ const SeccaoTransportes = ({ mostrarTransportes, setMostrarTransportes, setMostr
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: '600', color: '#334155', marginBottom: '4px' }}>Registar Transporte</span>
-            <input type="text" className="card-viagem__membros-input" placeholder="Operadora (ex: Iryo, TAP, FlixBus)" value={operadora} onChange={e => setOperadora(e.target.value)} style={{ backgroundColor: '#fff' }} />
+            <span style={{ fontSize: '0.9rem', fontWeight: '600', color: '#334155', marginBottom: '4px' }}>
+              {editUid ? '✏️ Editar Transporte' : 'Registar Transporte'}
+            </span>
+            <input 
+              type="text" 
+              className="card-viagem__membros-input" 
+              placeholder="Operadora (ex: Iryo, TAP, FlixBus)" 
+              value={operadora} 
+              onChange={e => setOperadora(e.target.value)} 
+              style={{ backgroundColor: '#fff' }} 
+            />
             <div style={{ display: 'flex', gap: '8px' }}>
-              <input type="text" className="card-viagem__membros-input" placeholder="Origem" value={origem} onChange={e => setOrigem(e.target.value)} style={{ flex: 1, backgroundColor: '#fff' }} />
-              <input type="text" className="card-viagem__membros-input" placeholder="Destino" value={destino} onChange={e => setDestino(e.target.value)} style={{ flex: 1, backgroundColor: '#fff' }} />
+              <input 
+                type="text" 
+                className="card-viagem__membros-input" 
+                placeholder="Origem" 
+                value={origem} 
+                onChange={e => setOrigem(e.target.value)} 
+                style={{ flex: 1, backgroundColor: '#fff' }} 
+              />
+              <input 
+                type="text" 
+                className="card-viagem__membros-input" 
+                placeholder="Destino" 
+                value={destino} 
+                onChange={e => setDestino(e.target.value)} 
+                style={{ flex: 1, backgroundColor: '#fff' }} 
+              />
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <input type="datetime-local" className="card-viagem__membros-input" value={partida} onChange={e => setPartida(e.target.value)} style={{ flex: 2, backgroundColor: '#fff' }} />
-              <input type="text" className="card-viagem__membros-input" placeholder="Lugar (Opcional)" value={lugar} onChange={e => setLugar(e.target.value)} style={{ flex: 1, backgroundColor: '#fff' }} />
+              <input 
+                type="datetime-local" 
+                className="card-viagem__membros-input" 
+                value={partida} 
+                onChange={e => setPartida(e.target.value)} 
+                style={{ flex: 2, backgroundColor: '#fff' }} 
+              />
+              <input 
+                type="text" 
+                className="card-viagem__membros-input" 
+                placeholder="Lugar (Opcional)" 
+                value={lugar} 
+                onChange={e => setLugar(e.target.value)} 
+                style={{ flex: 1, backgroundColor: '#fff' }} 
+              />
             </div>
-            <button type="button" className="card-viagem__membros-btn" onClick={handleAdd} style={{ width: '100%', borderRadius: '6px', padding: '10px', marginTop: '4px', fontWeight: '600', backgroundColor: '#f59e0b', border: 'none', color: '#fff', cursor: 'pointer' }}>Adicionar Transporte</button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                type="button" 
+                className="card-viagem__membros-btn" 
+                onClick={handleSubmit} 
+                style={{ 
+                  width: '100%', 
+                  borderRadius: '6px', 
+                  padding: '10px', 
+                  marginTop: '4px', 
+                  fontWeight: '600', 
+                  backgroundColor: editUid ? '#f59e0b' : '#f59e0b', 
+                  border: 'none', 
+                  color: '#fff', 
+                  cursor: 'pointer' 
+                }}
+              >
+                {editUid ? 'Atualizar Transporte' : 'Adicionar Transporte'}
+              </button>
+              {editUid && (
+                <button 
+                  type="button" 
+                  onClick={cancelarEdicao} 
+                  style={{ 
+                    padding: '10px 16px', 
+                    borderRadius: '6px', 
+                    border: '1px solid #cbd5e1', 
+                    background: '#fff', 
+                    color: '#475569', 
+                    cursor: 'pointer', 
+                    fontWeight: '600' 
+                  }}
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
