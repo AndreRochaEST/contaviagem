@@ -12,6 +12,7 @@ import SeccaoItinerario from './SeccaoItinerario';
 import SeccaoMapa from './SeccaoMapa';
 import SeccaoCofre from './SeccaoCofre';
 import SeccaoTransportes from './SeccaoTransportes';
+import OrcamentoEtapa from '../OrcamentoEtapa';
 
 function CartaoViagem({ 
   viagem, despesas, membros = [], categorias = [], tarefas = [], filtroTexto, filtroCategoria,
@@ -26,6 +27,7 @@ function CartaoViagem({
   const [mostrarCofre, setMostrarCofre] = useState(false);
   const [mostrarTransportes, setMostrarTransportes] = useState(false);
   const [tipoGrafico, setTipoGrafico] = useState('categoria');
+  const [mostrarOrcamentoEtapa, setMostrarOrcamentoEtapa] = useState(false);
 
   const todasDespesasDaViagem = despesas.filter(d => d.viagem_id === viagem.id);
   const membrosDaViagem = membros.filter(m => m.viagem_id === viagem.id);
@@ -54,6 +56,21 @@ function CartaoViagem({
         despesas={todasDespesasDaViagem} membros={membrosDaViagem}
         onArquivar={onArquivar}
       />
+
+      <div className="card-viagem__membros-container">
+        <button 
+          className="card-viagem__membros-toggle" 
+          onClick={() => setMostrarOrcamentoEtapa(!mostrarOrcamentoEtapa)}
+        >
+          <span>📊 Orçamento por Etapa</span>
+          <span>{mostrarOrcamentoEtapa ? '▲' : '▼'}</span>
+        </button>
+        {mostrarOrcamentoEtapa && (
+          <div className="card-viagem__membros-content">
+            <OrcamentoEtapa viagem={viagem} despesas={despesas} orcamentoTotal={viagem.orcamento} />
+          </div>
+        )}
+      </div>
 
       <SeccaoMembros 
         mostrarMembros={mostrarMembros} setMostrarMembros={setMostrarMembros} 

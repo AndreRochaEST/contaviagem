@@ -8,6 +8,7 @@ import CartaoViagem from '../../components/CartaoViagem';
 import FiltrosDashboard from '../../components/FiltrosDashboard';
 import AcoesDashboard from '../../components/AcoesDashboard';
 import AnalyticsGlobal from '../../components/AnalyticsGlobal';
+import { useAlertas } from '../../hooks';
 
 import { useViagem, useDespesa, useCategoria, useToast, useMembro, useAnalytics } from '../../hooks';
 import { MENSAGENS, CONFIRMACOES, callService } from '../../utils';
@@ -54,6 +55,8 @@ function DashboardContainer() {
     dataFim: '',
     orcamento: ''
   });
+
+  useAlertas(viagens, despesas, membros);
 
   useEffect(() => {
     if (viagens.length > 0 && !formDespesa.viagemId && !editDespesaUid) {

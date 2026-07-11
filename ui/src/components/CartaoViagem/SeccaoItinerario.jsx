@@ -24,6 +24,28 @@ const SeccaoItinerario = ({
   const { clima } = useClima(destino, mostrarItinerario);
   const { mostrarErro, mostrarSucesso } = useToast();
 
+  const exportarICS = async () => {
+    if (!viagemId) return;
+    try {
+        const response = await fetch(`/services/itinerario/export_ics?viagem_id=${viagemId}`);
+        if (!response.ok) {
+            throw new Error('Erro ao gerar ICS');
+        }
+        const text = await response.text();
+        const blob = new Blob([text], { type: 'text/calendar;charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `itinerario_${viagemId}.ics`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    } catch (err) {
+        mostrarErro('Não foi possível exportar o calendário.');
+    }
+};
+
   const handleAdd = async () => {
     if (!data || !local || !viagemId) return;
     const result = await criarItinerario({
@@ -130,6 +152,12 @@ const SeccaoItinerario = ({
 
       {mostrarItinerario && (
         <div className="card-viagem__membros-content">
+          <button 
+        onClick={exportarICS} 
+        style={{ marginBottom: '10px', backgroundColor: '#3b82f6', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}
+        >
+        📅 Exportar para Calendário (.ics)
+        </button>
           <div className="card-viagem__checklist-lista" style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
             {itinerariosOrdenados.length === 0 && <span className="card-viagem__membro-vazio">Nenhum local no itinerário.</span>}
             
